@@ -91,20 +91,6 @@ create table if not exists public.payment_events (
   created_at timestamptz not null default now()
 );
 
-create table if not exists public.notification_jobs (
-  id uuid primary key default gen_random_uuid(),
-  business_id text references public.businesses(id) on delete cascade,
-  booking_id uuid references public.bookings(id) on delete cascade,
-  channel text not null check (channel in ('email', 'whatsapp')),
-  recipient text not null,
-  template text not null,
-  payload jsonb not null default '{}'::jsonb,
-  status text not null default 'pending' check (status in ('pending', 'sent', 'failed')),
-  error text,
-  created_at timestamptz not null default now(),
-  sent_at timestamptz
-);
-
 create table if not exists public.bookings (
   id uuid primary key default gen_random_uuid(),
   client text not null,
@@ -119,6 +105,20 @@ create table if not exists public.bookings (
   price integer not null default 0,
   duration integer not null default 30,
   created_at timestamptz not null default now()
+);
+
+create table if not exists public.notification_jobs (
+  id uuid primary key default gen_random_uuid(),
+  business_id text references public.businesses(id) on delete cascade,
+  booking_id uuid references public.bookings(id) on delete cascade,
+  channel text not null check (channel in ('email', 'whatsapp')),
+  recipient text not null,
+  template text not null,
+  payload jsonb not null default '{}'::jsonb,
+  status text not null default 'pending' check (status in ('pending', 'sent', 'failed')),
+  error text,
+  created_at timestamptz not null default now(),
+  sent_at timestamptz
 );
 
 alter table public.businesses enable row level security;
