@@ -185,10 +185,12 @@ export default function App() {
 
   return (
     <Layout businesses={businesses} route={route} setRoute={setRoute}>
-      <div className="system-banner">
-        <span>{dataSource === "supabase" ? "Conectado ao Supabase" : "Modo local/demo"}</span>
-        <strong>{isLoading ? "Carregando dados..." : "Pronto para usar"}</strong>
-      </div>
+      {!publicStoreSlug ? (
+        <div className="system-banner">
+          <span>{dataSource === "supabase" ? "Conectado ao Supabase" : "Modo local/demo"}</span>
+          <strong>{isLoading ? "Carregando dados..." : "Pronto para usar"}</strong>
+        </div>
+      ) : null}
 
       {route === "/" ? <LandingPage businesses={businesses} plans={plans} setRoute={setRoute} /> : null}
       {publicStoreSlug ? (

@@ -47,7 +47,7 @@ export const defaultSchedule = {
 
 export const initialBusinesses = [
   {
-    id: "brilho-car",
+    id: "lava-jato-brilho-car",
     name: "Brilho Car Lava Jato",
     type: "lava-jato",
     owner: "Marcos",
@@ -154,7 +154,7 @@ export const initialBookings = [
     id: "ag-1",
     client: "Joao Pereira",
     phone: "(11) 99999-1111",
-    businessId: "brilho-car",
+    businessId: "lava-jato-brilho-car",
     service: "Lavagem completa + cera",
     date: "2026-06-04",
     time: "08:30",

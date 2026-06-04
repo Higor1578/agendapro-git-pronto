@@ -214,7 +214,7 @@ on conflict (id) do update set
 insert into public.businesses (id, name, type, owner, plan, monthly, active, trial_days, schedule, contact, expenses, opportunities, professionals, services)
 values
   (
-    'brilho-car',
+    'lava-jato-brilho-car',
     'Brilho Car Lava Jato',
     'lava-jato',
     'Marcos',
@@ -281,7 +281,7 @@ on conflict (id) do nothing;
 
 insert into public.bookings (client, phone, business_id, service, date, time, professional, status, notes, price, duration)
 values
-  ('Joao Pereira', '(11) 99999-1111', 'brilho-car', 'Lavagem completa + cera', '2026-06-04', '08:30', 'Marcos', 'confirmado', 'Carro SUV', 95, 75),
+  ('Joao Pereira', '(11) 99999-1111', 'lava-jato-brilho-car', 'Lavagem completa + cera', '2026-06-04', '08:30', 'Marcos', 'confirmado', 'Carro SUV', 95, 75),
   ('Camila Rocha', '(11) 99999-2222', 'bella-maos', 'Esmaltacao em gel', '2026-06-04', '09:15', 'Ana', 'pendente', '', 70, 60),
   ('Bruno Santos', '(11) 99999-3333', 'navalha-fina', 'Corte + barba', '2026-06-04', '10:00', 'Rafael', 'confirmado', 'Corte degradado', 85, 55),
   ('Patricia Lima', '(11) 99999-4444', 'luz-beauty', 'Hidratacao', '2026-06-04', '11:30', 'Bianca', 'concluido', '', 95, 70);
