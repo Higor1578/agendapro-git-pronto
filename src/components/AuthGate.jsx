@@ -5,6 +5,8 @@ export default function AuthGate({ children, requiredRole, selectedBusinessId })
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
   const [profileLoaded, setProfileLoaded] = useState(false);
+  const [membershipLoaded, setMembershipLoaded] = useState(false);
+  const [hasStoreAccess, setHasStoreAccess] = useState(false);
   const [isLoading, setIsLoading] = useState(isSupabaseConfigured);
   const [error, setError] = useState("");
 
@@ -14,20 +16,35 @@ export default function AuthGate({ children, requiredRole, selectedBusinessId })
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
       if (data.session?.user) loadProfile(data.session.user.id);
+      if (data.session?.user && selectedBusinessId) loadMembership(data.session.user.id, selectedBusinessId);
       setIsLoading(false);
     });
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       setSession(nextSession);
       if (nextSession?.user) loadProfile(nextSession.user.id);
+      if (nextSession?.user && selectedBusinessId) loadMembership(nextSession.user.id, selectedBusinessId);
       if (!nextSession) {
         setProfile(null);
         setProfileLoaded(false);
+        setHasStoreAccess(false);
+        setMembershipLoaded(false);
       }
     });
 
     return () => listener.subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured || !session?.user) return;
+    if (!selectedBusinessId) {
+      setMembershipLoaded(true);
+      setHasStoreAccess(false);
+      return;
+    }
+
+    loadMembership(session.user.id, selectedBusinessId);
+  }, [session?.user?.id, selectedBusinessId]);
 
   async function loadProfile(userId) {
     setProfileLoaded(false);
@@ -35,6 +52,20 @@ export default function AuthGate({ children, requiredRole, selectedBusinessId })
     if (profileError) setError(profileError.message);
     setProfile(data);
     setProfileLoaded(true);
+  }
+
+  async function loadMembership(userId, businessId) {
+    setMembershipLoaded(false);
+    const { data, error: membershipError } = await supabase
+      .from("business_members")
+      .select("business_id")
+      .eq("user_id", userId)
+      .eq("business_id", businessId)
+      .maybeSingle();
+
+    if (membershipError) setError(membershipError.message);
+    setHasStoreAccess(Boolean(data));
+    setMembershipLoaded(true);
   }
 
   async function handleLogin(event) {
@@ -75,6 +106,7 @@ export default function AuthGate({ children, requiredRole, selectedBusinessId })
         .update({ must_change_password: false, password_changed_at: new Date().toISOString() })
         .eq("id", session.user.id);
       await loadProfile(session.user.id);
+      if (selectedBusinessId) await loadMembership(session.user.id, selectedBusinessId);
     }
   }
 
@@ -114,7 +146,7 @@ export default function AuthGate({ children, requiredRole, selectedBusinessId })
   }
 
   const mustChangePassword = profile?.must_change_password || session.user.user_metadata?.must_change_password;
-  if (!profileLoaded) {
+  if (!profileLoaded || (requiredRole === "store_admin" && selectedBusinessId && !membershipLoaded)) {
     return <div className="panel auth-panel">Carregando permissoes...</div>;
   }
 
@@ -140,7 +172,13 @@ export default function AuthGate({ children, requiredRole, selectedBusinessId })
     );
   }
 
-  if (requiredRole && profile?.role !== requiredRole) {
+  const canUseRole =
+    !requiredRole ||
+    profile?.role === requiredRole ||
+    (requiredRole === "store_admin" && profile?.role === "super_admin");
+  const canUseStore = requiredRole !== "store_admin" || !selectedBusinessId || profile?.role === "super_admin" || hasStoreAccess;
+
+  if (!canUseRole || !canUseStore) {
     return (
       <section className="auth-screen">
         <div className="panel auth-panel">

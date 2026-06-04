@@ -1,5 +1,7 @@
+import { useState } from "react";
 import MetricCard from "../components/MetricCard.jsx";
 import { businessTypes, planPrices } from "../data/seed.js";
+import { grantStoreAccess } from "../services/adminAccess.js";
 import { currency, slugify } from "../utils/format.js";
 
 const defaultServices = {
@@ -9,25 +11,41 @@ const defaultServices = {
   salao: [{ name: "Escova", price: 60, duration: 45 }]
 };
 
-export default function SuperAdminPage({ businesses, bookings, addBusiness, plans, updateBusiness, updatePlan }) {
+export default function SuperAdminPage({
+  businesses,
+  bookings,
+  addBusiness,
+  plans,
+  theme,
+  setTheme,
+  updateBusiness,
+  updatePlan
+}) {
+  const [accessMessage, setAccessMessage] = useState("");
   const mrr = businesses.reduce((sum, business) => sum + business.monthly, 0);
   const revenue = bookings.reduce((sum, booking) => sum + booking.price, 0);
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     const name = form.get("name");
     const type = form.get("type");
     const plan = form.get("plan");
     const owner = form.get("owner");
+    const ownerEmail = form.get("ownerEmail");
+    const ownerUserId = form.get("ownerUserId");
     const whatsapp = form.get("whatsapp");
     const instagram = form.get("instagram");
 
-    addBusiness({
+    setAccessMessage("");
+
+    const savedBusiness = await addBusiness({
       id: slugify(`${name}-${Date.now()}`),
       name,
       type,
       owner,
+      ownerEmail,
+      ownerUserId,
       plan,
       monthly: plans.find((item) => item.id === plan)?.price ?? planPrices[plan],
       active: true,
@@ -50,7 +68,39 @@ export default function SuperAdminPage({ businesses, bookings, addBusiness, plan
       services: defaultServices[type]
     });
 
+    if (savedBusiness && (ownerEmail || ownerUserId)) {
+      try {
+        await grantStoreAccess({
+          businessId: savedBusiness.id,
+          email: ownerEmail,
+          userId: ownerUserId,
+          role: "owner"
+        });
+        setAccessMessage("Permissao de admin da loja vinculada ao usuario informado.");
+      } catch (error) {
+        setAccessMessage(`Loja criada, mas a permissao nao foi vinculada: ${error.message}`);
+      }
+    }
+
     event.currentTarget.reset();
+  }
+
+  async function handleGrantAccess(event, businessId) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const email = form.get("email");
+    const userId = form.get("userId");
+
+    setAccessMessage("");
+
+    try {
+      await grantStoreAccess({ businessId, email, userId, role: "owner" });
+      updateBusiness(businessId, { ownerEmail: email, ownerUserId: userId });
+      setAccessMessage("Permissao atualizada para esta loja.");
+      event.currentTarget.reset();
+    } catch (error) {
+      setAccessMessage(`Nao consegui vincular permissao: ${error.message}`);
+    }
   }
 
   return (
@@ -91,12 +141,30 @@ export default function SuperAdminPage({ businesses, bookings, addBusiness, plan
                     <p>
                       {business.owner} - Plano {business.plan} - {business.trialDays ?? 0} dias gratis
                     </p>
+                    {business.ownerEmail || business.ownerUserId ? (
+                      <p>
+                        Login: {business.ownerEmail || "sem e-mail"} {business.ownerUserId ? `- ID ${business.ownerUserId}` : ""}
+                      </p>
+                    ) : null}
                     <a className="store-link" href={`/loja/${business.id}`}>
                       Cliente: /loja/{business.id}
                     </a>
                     <a className="store-link" href={`/admin/${business.id}`}>
                       Admin: /admin/{business.id}
                     </a>
+                    <form className="inline-access-form" onSubmit={(event) => handleGrantAccess(event, business.id)}>
+                      <label>
+                        E-mail com acesso
+                        <input name="email" placeholder="cliente@email.com" type="email" />
+                      </label>
+                      <label>
+                        ID do usuario
+                        <input name="userId" placeholder="UUID do Supabase" />
+                      </label>
+                      <button className="secondary-button" type="submit">
+                        Liberar acesso
+                      </button>
+                    </form>
                   </div>
                   <div className="tenant-stats">
                     <button
@@ -158,6 +226,14 @@ export default function SuperAdminPage({ businesses, bookings, addBusiness, plan
               <input name="owner" placeholder="Nome do dono" required />
             </label>
             <label>
+              E-mail do admin
+              <input name="ownerEmail" placeholder="cliente@email.com" required type="email" />
+            </label>
+            <label>
+              ID do usuario Supabase
+              <input name="ownerUserId" placeholder="Opcional: UUID do Auth" />
+            </label>
+            <label>
               WhatsApp da loja
               <input name="whatsapp" placeholder="Ex: 5511999999999" required />
             </label>
@@ -168,8 +244,27 @@ export default function SuperAdminPage({ businesses, bookings, addBusiness, plan
             <button className="primary-button full" type="submit">
               Salvar negocio
             </button>
+            {accessMessage ? <strong className="form-feedback">{accessMessage}</strong> : null}
           </form>
         </aside>
+      </section>
+
+      <section className="panel landing-section">
+        <div className="panel-header">
+          <div>
+            <h2>Aparencia</h2>
+            <p>Escolha como o painel aparece no seu aparelho.</p>
+          </div>
+        </div>
+        <div className="theme-control">
+          <label>
+            Tema da plataforma
+            <select value={theme} onChange={(event) => setTheme(event.target.value)}>
+              <option value="light">Claro</option>
+              <option value="dark">Escuro</option>
+            </select>
+          </label>
+        </div>
       </section>
 
       <section className="panel landing-section">

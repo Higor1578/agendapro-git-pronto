@@ -22,6 +22,7 @@ create table if not exists public.businesses (
   active boolean not null default true,
   trial_days integer not null default 7,
   trial_ends_at timestamptz,
+  owner_email text,
   owner_user_id uuid references auth.users(id) on delete set null,
   schedule jsonb not null default '{"slotInterval":60,"workDays":[1,2,3,4,5,6],"closedDates":[],"startTime":"08:00","endTime":"18:00"}'::jsonb,
   contact jsonb not null default '{}'::jsonb,
@@ -35,6 +36,7 @@ create table if not exists public.businesses (
 alter table public.businesses add column if not exists active boolean not null default true;
 alter table public.businesses add column if not exists trial_days integer not null default 7;
 alter table public.businesses add column if not exists trial_ends_at timestamptz;
+alter table public.businesses add column if not exists owner_email text;
 alter table public.businesses add column if not exists owner_user_id uuid references auth.users(id) on delete set null;
 alter table public.businesses add column if not exists schedule jsonb not null default '{"slotInterval":60,"workDays":[1,2,3,4,5,6],"closedDates":[],"startTime":"08:00","endTime":"18:00"}'::jsonb;
 alter table public.businesses add column if not exists contact jsonb not null default '{}'::jsonb;
@@ -271,13 +273,14 @@ on conflict (id) do update set
   stores_limit = excluded.stores_limit,
   bookings_limit = excluded.bookings_limit;
 
-insert into public.businesses (id, name, type, owner, plan, monthly, active, trial_days, schedule, contact, expenses, opportunities, professionals, services)
+insert into public.businesses (id, name, type, owner, owner_email, plan, monthly, active, trial_days, schedule, contact, expenses, opportunities, professionals, services)
 values
   (
     'lava-jato-brilho-car',
     'Brilho Car Lava Jato',
     'lava-jato',
     'Marcos',
+    'marcos@brilhocar.local',
     'Profissional',
     149,
     true,
@@ -294,6 +297,7 @@ values
     'Navalha Fina Barbearia',
     'barbearia',
     'Rafael',
+    'rafael@navalhafina.local',
     'Essencial',
     79,
     true,
@@ -310,6 +314,7 @@ values
     'Bella Maos Studio',
     'manicure',
     'Ana',
+    'ana@bellamaos.local',
     'Premium',
     249,
     true,
@@ -326,6 +331,7 @@ values
     'Luz Beauty Salao',
     'salao',
     'Bianca',
+    'bianca@luzbeauty.local',
     'Profissional',
     149,
     false,

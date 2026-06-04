@@ -18,7 +18,8 @@ const adminRoutes = ["/admin", "/super-admin"];
 const storageKeys = {
   businesses: "agendapro:businesses",
   bookings: "agendapro:bookings",
-  plans: "agendapro:plans"
+  plans: "agendapro:plans",
+  theme: "agendapro:theme"
 };
 
 function getInitialRoute() {
@@ -51,6 +52,7 @@ export default function App() {
   const [businesses, setBusinesses] = useState(() => loadFromStorage(storageKeys.businesses, initialBusinesses));
   const [bookings, setBookings] = useState(() => loadFromStorage(storageKeys.bookings, initialBookings));
   const [plans, setPlans] = useState(() => loadFromStorage(storageKeys.plans, initialPlans));
+  const [theme, setTheme] = useState(() => localStorage.getItem(storageKeys.theme) || "light");
   const [isLoading, setIsLoading] = useState(isSupabaseConfigured);
   const [dataSource, setDataSource] = useState(isSupabaseConfigured ? "supabase" : "local");
   const [toast, setToast] = useState("");
@@ -114,7 +116,7 @@ export default function App() {
         const saved = await createRemoteBusiness(business);
         setBusinesses((current) => [...current, saved]);
         notify("Negocio salvo no Supabase.");
-        return;
+        return saved;
       } catch (error) {
         notify(`Erro no Supabase: ${error.message}`);
       }
@@ -122,6 +124,7 @@ export default function App() {
 
     setBusinesses((current) => [...current, business]);
     notify("Negocio criado pelo super admin.");
+    return business;
   }
 
   function updateBusiness(id, updates) {
@@ -153,6 +156,11 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem(storageKeys.plans, JSON.stringify(plans));
   }, [plans]);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem(storageKeys.theme, theme);
+  }, [theme]);
 
   useEffect(() => {
     let ignore = false;
@@ -216,6 +224,8 @@ export default function App() {
             bookings={bookings}
             businesses={businesses}
             plans={plans}
+            theme={theme}
+            setTheme={setTheme}
             updateBusiness={updateBusiness}
             updatePlan={updatePlan}
           />

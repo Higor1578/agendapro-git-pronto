@@ -47,6 +47,7 @@ export async function provisionStore(supabase: any, input: ProvisionInput) {
     name: input.businessName,
     type: input.businessType,
     owner: input.ownerName,
+    owner_email: input.ownerEmail,
     owner_user_id: userId,
     plan: plan.id,
     monthly: plan.price,
