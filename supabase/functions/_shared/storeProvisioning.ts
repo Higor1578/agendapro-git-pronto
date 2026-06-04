@@ -30,6 +30,7 @@ export async function provisionStore(supabase: any, input: ProvisionInput) {
       full_name: input.ownerName,
       phone: input.ownerPhone,
       role: "store_admin",
+      must_change_password: true,
     },
   });
 
@@ -76,6 +77,7 @@ export async function provisionStore(supabase: any, input: ProvisionInput) {
     id: userId,
     full_name: input.ownerName,
     role: "store_admin",
+    must_change_password: true,
   });
 
   await supabase.from("business_members").upsert({
@@ -104,6 +106,7 @@ export async function provisionStore(supabase: any, input: ProvisionInput) {
     payload: {
       businessName: input.businessName,
       publicLink: `/loja/${businessId}`,
+      adminLink: `/admin/${businessId}`,
       temporaryPassword: password,
     },
   });

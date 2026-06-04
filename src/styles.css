@@ -171,6 +171,48 @@ main {
   color: var(--accent-dark);
 }
 
+.auth-screen {
+  display: grid;
+  min-height: 70vh;
+  place-items: center;
+}
+
+.auth-panel {
+  display: grid;
+  width: min(460px, 100%);
+  gap: 14px;
+}
+
+.auth-panel h1 {
+  font-size: 32px;
+}
+
+.auth-panel p,
+.auth-panel small {
+  color: var(--muted);
+}
+
+.auth-error {
+  color: var(--red);
+  font-size: 13px;
+}
+
+.auth-warning,
+.session-bar {
+  margin-bottom: 18px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.session-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .compact-metrics {
   margin-top: -6px;
 }

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Layout from "./components/Layout.jsx";
+import AuthGate from "./components/AuthGate.jsx";
 import { initialBookings, initialBusinesses, initialPlans } from "./data/seed.js";
 import AdminNegocioPage from "./pages/AdminNegocioPage.jsx";
 import ClientePage from "./pages/ClientePage.jsx";
@@ -197,24 +198,28 @@ export default function App() {
         <ClientePage addBooking={addBooking} businesses={businesses} selectedBusinessId={publicStoreSlug} />
       ) : null}
       {route === "/admin" || adminStoreSlug ? (
-        <AdminNegocioPage
-          selectedBusinessId={adminStoreSlug}
-          bookings={bookings}
-          businesses={businesses}
-          businessesById={businessesById}
-          updateBusiness={updateBusiness}
-          updateBookingStatus={updateBookingStatus}
-        />
+        <AuthGate requiredRole="store_admin" selectedBusinessId={adminStoreSlug}>
+          <AdminNegocioPage
+            selectedBusinessId={adminStoreSlug}
+            bookings={bookings}
+            businesses={businesses}
+            businessesById={businessesById}
+            updateBusiness={updateBusiness}
+            updateBookingStatus={updateBookingStatus}
+          />
+        </AuthGate>
       ) : null}
       {route === "/super-admin" ? (
-        <SuperAdminPage
-          addBusiness={addBusiness}
-          bookings={bookings}
-          businesses={businesses}
-          plans={plans}
-          updateBusiness={updateBusiness}
-          updatePlan={updatePlan}
-        />
+        <AuthGate requiredRole="super_admin">
+          <SuperAdminPage
+            addBusiness={addBusiness}
+            bookings={bookings}
+            businesses={businesses}
+            plans={plans}
+            updateBusiness={updateBusiness}
+            updatePlan={updatePlan}
+          />
+        </AuthGate>
       ) : null}
 
       <div className={`toast ${toast ? "show" : ""}`} role="status" aria-live="polite">

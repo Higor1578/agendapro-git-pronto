@@ -4,8 +4,13 @@ create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   full_name text,
   role text not null default 'store_admin' check (role in ('super_admin', 'store_admin')),
+  must_change_password boolean not null default false,
+  password_changed_at timestamptz,
   created_at timestamptz not null default now()
 );
+
+alter table public.profiles add column if not exists must_change_password boolean not null default false;
+alter table public.profiles add column if not exists password_changed_at timestamptz;
 
 create table if not exists public.businesses (
   id text primary key,
@@ -180,6 +185,13 @@ create policy "admins read own profile"
 on public.profiles for select
 to authenticated
 using (id = auth.uid());
+
+drop policy if exists "admins update own profile password flag" on public.profiles;
+create policy "admins update own profile password flag"
+on public.profiles for update
+to authenticated
+using (id = auth.uid())
+with check (id = auth.uid());
 
 drop policy if exists "members read own memberships" on public.business_members;
 create policy "members read own memberships"
