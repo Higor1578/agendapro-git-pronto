@@ -73,6 +73,10 @@ export default function AdminNegocioPage({ businesses, bookings, selectedBusines
     event.currentTarget.reset();
   }
 
+  function updateContact(field, value) {
+    updateBusiness(business.id, { contact: { ...(business.contact ?? {}), [field]: value } });
+  }
+
   function updateService(index, field, value) {
     const services = business.services.map((service, serviceIndex) =>
       serviceIndex === index ? { ...service, [field]: field === "name" ? value : Number(value) } : service
@@ -256,6 +260,39 @@ export default function AdminNegocioPage({ businesses, bookings, selectedBusines
             <button className="secondary-button" onClick={() => navigator.clipboard?.writeText(adminLink())} type="button">
               Copiar admin
             </button>
+          </div>
+
+          <div className="panel-header inner-header">
+            <div>
+              <h2>Contato da loja</h2>
+              <p>Esses dados aparecem na pagina publica.</p>
+            </div>
+          </div>
+          <div className="contact-editor">
+            <label>
+              WhatsApp da loja
+              <input
+                value={business.contact?.whatsapp ?? ""}
+                onChange={(event) => updateContact("whatsapp", event.target.value)}
+                placeholder="5511999999999"
+              />
+            </label>
+            <label>
+              Instagram
+              <input
+                value={business.contact?.instagram ?? ""}
+                onChange={(event) => updateContact("instagram", event.target.value)}
+                placeholder="https://instagram.com/sualoja"
+              />
+            </label>
+            <label>
+              Mensagem apos agendamento
+              <input
+                value={business.contact?.confirmationMessage ?? ""}
+                onChange={(event) => updateContact("confirmationMessage", event.target.value)}
+                placeholder="Ola, seu agendamento foi recebido."
+              />
+            </label>
           </div>
 
           <div className="panel-header inner-header">

@@ -19,6 +19,7 @@ create table if not exists public.businesses (
   trial_ends_at timestamptz,
   owner_user_id uuid references auth.users(id) on delete set null,
   schedule jsonb not null default '{"slotInterval":60,"workDays":[1,2,3,4,5,6],"closedDates":[],"startTime":"08:00","endTime":"18:00"}'::jsonb,
+  contact jsonb not null default '{}'::jsonb,
   expenses jsonb not null default '[]'::jsonb,
   opportunities jsonb not null default '[]'::jsonb,
   professionals jsonb not null default '[]'::jsonb,
@@ -31,6 +32,7 @@ alter table public.businesses add column if not exists trial_days integer not nu
 alter table public.businesses add column if not exists trial_ends_at timestamptz;
 alter table public.businesses add column if not exists owner_user_id uuid references auth.users(id) on delete set null;
 alter table public.businesses add column if not exists schedule jsonb not null default '{"slotInterval":60,"workDays":[1,2,3,4,5,6],"closedDates":[],"startTime":"08:00","endTime":"18:00"}'::jsonb;
+alter table public.businesses add column if not exists contact jsonb not null default '{}'::jsonb;
 alter table public.businesses add column if not exists expenses jsonb not null default '[]'::jsonb;
 alter table public.businesses add column if not exists opportunities jsonb not null default '[]'::jsonb;
 
@@ -209,7 +211,7 @@ on conflict (id) do update set
   stores_limit = excluded.stores_limit,
   bookings_limit = excluded.bookings_limit;
 
-insert into public.businesses (id, name, type, owner, plan, monthly, active, trial_days, schedule, expenses, opportunities, professionals, services)
+insert into public.businesses (id, name, type, owner, plan, monthly, active, trial_days, schedule, contact, expenses, opportunities, professionals, services)
 values
   (
     'brilho-car',
@@ -221,6 +223,7 @@ values
     true,
     14,
     '{"slotInterval":60,"workDays":[1,2,3,4,5,6],"closedDates":["2026-06-07"],"startTime":"08:00","endTime":"18:00"}',
+    '{"whatsapp":"5511999991111","instagram":"https://instagram.com/brilhocar","confirmationMessage":"Ola, seu agendamento na Brilho Car Lava Jato foi recebido. Vamos confirmar em instantes."}',
     '[{"id":"exp-1","name":"Produtos de limpeza","category":"Insumos","amount":320,"date":"2026-06-04"},{"id":"exp-2","name":"Agua e energia","category":"Operacional","amount":180,"date":"2026-06-04"}]',
     '[{"id":"opp-1","client":"Joao Pereira","note":"Oferecer plano de lavagem mensal","value":180,"status":"aberta"}]',
     '["Marcos", "Diego", "Paula"]',
@@ -236,6 +239,7 @@ values
     true,
     7,
     '{"slotInterval":30,"workDays":[2,3,4,5,6],"closedDates":["2026-06-07"],"startTime":"08:00","endTime":"18:00"}',
+    '{"whatsapp":"5511999993333","instagram":"https://instagram.com/navalhafina","confirmationMessage":"Ola, seu horario na Navalha Fina Barbearia foi recebido. Obrigado pela preferencia."}',
     '[{"id":"exp-3","name":"Pomadas e laminas","category":"Insumos","amount":140,"date":"2026-06-04"}]',
     '[{"id":"opp-2","client":"Bruno Santos","note":"Vender assinatura quinzenal","value":120,"status":"aberta"}]',
     '["Rafael", "Andre", "Lucas"]',
@@ -251,6 +255,7 @@ values
     true,
     30,
     '{"slotInterval":45,"workDays":[1,2,3,4,5],"closedDates":["2026-06-07"],"startTime":"08:00","endTime":"18:00"}',
+    '{"whatsapp":"5511999992222","instagram":"https://instagram.com/bellamaosstudio","confirmationMessage":"Ola, seu agendamento na Bella Maos Studio foi recebido. Em breve confirmaremos."}',
     '[{"id":"exp-4","name":"Esmaltes","category":"Insumos","amount":210,"date":"2026-06-04"}]',
     '[{"id":"opp-3","client":"Camila Rocha","note":"Retorno para manutencao em 20 dias","value":70,"status":"aberta"}]',
     '["Ana", "Camila", "Nina"]',
@@ -266,6 +271,7 @@ values
     false,
     14,
     '{"slotInterval":60,"workDays":[1,2,3,4,5],"closedDates":["2026-06-07"],"startTime":"08:00","endTime":"18:00"}',
+    '{"whatsapp":"5511999994444","instagram":"https://instagram.com/luzbeautysalao","confirmationMessage":"Ola, seu agendamento no Luz Beauty Salao foi recebido."}',
     '[]',
     '[]',
     '["Bianca", "Priscila", "Joana"]',

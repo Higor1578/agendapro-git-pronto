@@ -59,6 +59,11 @@ export async function provisionStore(supabase: any, input: ProvisionInput) {
       startTime: "08:00",
       endTime: "18:00",
     },
+    contact: {
+      whatsapp: input.ownerPhone ?? "",
+      instagram: "",
+      confirmationMessage: `Ola, seu agendamento em ${input.businessName} foi recebido. Em breve confirmaremos o horario.`,
+    },
     expenses: [],
     opportunities: [],
     professionals: [input.ownerName],

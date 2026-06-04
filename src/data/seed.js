@@ -56,6 +56,11 @@ export const initialBusinesses = [
     active: true,
     trialDays: 14,
     schedule: defaultSchedule,
+    contact: {
+      whatsapp: "5511999991111",
+      instagram: "https://instagram.com/brilhocar",
+      confirmationMessage: "Ola, seu agendamento na Brilho Car Lava Jato foi recebido. Vamos confirmar em instantes."
+    },
     expenses: [
       { id: "exp-1", name: "Produtos de limpeza", category: "Insumos", amount: 320, date: "2026-06-04" },
       { id: "exp-2", name: "Agua e energia", category: "Operacional", amount: 180, date: "2026-06-04" }
@@ -80,6 +85,11 @@ export const initialBusinesses = [
     active: true,
     trialDays: 7,
     schedule: { ...defaultSchedule, slotInterval: 30, workDays: [2, 3, 4, 5, 6] },
+    contact: {
+      whatsapp: "5511999993333",
+      instagram: "https://instagram.com/navalhafina",
+      confirmationMessage: "Ola, seu horario na Navalha Fina Barbearia foi recebido. Obrigado pela preferencia."
+    },
     expenses: [{ id: "exp-3", name: "Pomadas e laminas", category: "Insumos", amount: 140, date: "2026-06-04" }],
     opportunities: [{ id: "opp-2", client: "Bruno Santos", note: "Vender assinatura quinzenal", value: 120, status: "aberta" }],
     professionals: ["Rafael", "Andre", "Lucas"],
@@ -99,6 +109,11 @@ export const initialBusinesses = [
     active: true,
     trialDays: 30,
     schedule: { ...defaultSchedule, slotInterval: 45, workDays: [1, 2, 3, 4, 5] },
+    contact: {
+      whatsapp: "5511999992222",
+      instagram: "https://instagram.com/bellamaosstudio",
+      confirmationMessage: "Ola, seu agendamento na Bella Maos Studio foi recebido. Em breve confirmaremos."
+    },
     expenses: [{ id: "exp-4", name: "Esmaltes", category: "Insumos", amount: 210, date: "2026-06-04" }],
     opportunities: [{ id: "opp-3", client: "Camila Rocha", note: "Retorno para manutencao em 20 dias", value: 70, status: "aberta" }],
     professionals: ["Ana", "Camila", "Nina"],
@@ -118,6 +133,11 @@ export const initialBusinesses = [
     active: false,
     trialDays: 14,
     schedule: { ...defaultSchedule, slotInterval: 60, workDays: [1, 2, 3, 4, 5] },
+    contact: {
+      whatsapp: "5511999994444",
+      instagram: "https://instagram.com/luzbeautysalao",
+      confirmationMessage: "Ola, seu agendamento no Luz Beauty Salao foi recebido."
+    },
     expenses: [],
     opportunities: [],
     professionals: ["Bianca", "Priscila", "Joana"],

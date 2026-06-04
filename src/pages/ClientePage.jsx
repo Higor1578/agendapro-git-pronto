@@ -2,6 +2,16 @@ import { useEffect, useMemo, useState } from "react";
 import { businessTypes, timeSlots } from "../data/seed.js";
 import { currency } from "../utils/format.js";
 
+function onlyDigits(value = "") {
+  return String(value).replace(/\D/g, "");
+}
+
+function whatsappLink(phone, message) {
+  const digits = onlyDigits(phone);
+  if (!digits) return "";
+  return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
+}
+
 function generateSlots(schedule) {
   if (!schedule?.slotInterval) return timeSlots;
   const [startHour, startMinute] = (schedule.startTime ?? "08:00").split(":").map(Number);
@@ -22,6 +32,7 @@ function generateSlots(schedule) {
 
 export default function ClientePage({ businesses, addBooking, selectedBusinessId }) {
   const [businessId, setBusinessId] = useState(selectedBusinessId ?? businesses[0]?.id ?? "");
+  const [confirmation, setConfirmation] = useState(null);
   const selectedBusiness = useMemo(
     () => businesses.find((business) => business.id === businessId) ?? businesses[0],
     [businessId, businesses]
@@ -56,11 +67,14 @@ export default function ClientePage({ businesses, addBooking, selectedBusinessId
 
   const slots = generateSlots(selectedBusiness.schedule);
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     const service = selectedBusiness.services.find((item) => item.name === form.get("service"));
     const date = form.get("date");
+    const time = form.get("time");
+    const client = form.get("client");
+    const phone = form.get("phone");
     const weekday = new Date(`${date}T12:00:00`).getDay();
 
     if (!(selectedBusiness.schedule?.workDays ?? []).includes(weekday)) {
@@ -73,18 +87,35 @@ export default function ClientePage({ businesses, addBooking, selectedBusinessId
       return;
     }
 
-    addBooking({
-      client: form.get("client"),
-      phone: form.get("phone"),
+    const booking = {
+      client,
+      phone,
       businessId: selectedBusiness.id,
       service: service.name,
       date,
-      time: form.get("time"),
+      time,
       professional: form.get("professional"),
       status: "pendente",
       notes: form.get("notes"),
       price: service.price,
       duration: service.duration
+    };
+
+    await addBooking(booking);
+
+    const defaultMessage = `Ola ${client}, seu agendamento em ${selectedBusiness.name} foi recebido: ${service.name} em ${date} as ${time}.`;
+    const message = selectedBusiness.contact?.confirmationMessage
+      ? `${selectedBusiness.contact.confirmationMessage}\n\nCliente: ${client}\nServico: ${service.name}\nData: ${date}\nHorario: ${time}`
+      : defaultMessage;
+
+    setConfirmation({
+      client,
+      phone,
+      service: service.name,
+      date,
+      time,
+      message,
+      whatsappUrl: whatsappLink(phone, message)
     });
 
     event.currentTarget.reset();
@@ -104,6 +135,18 @@ export default function ClientePage({ businesses, addBooking, selectedBusinessId
           <span>Instalavel como app</span>
           <span>Entra no admin do negocio</span>
         </div>
+        <div className="store-socials">
+          {selectedBusiness.contact?.whatsapp ? (
+            <a href={whatsappLink(selectedBusiness.contact.whatsapp, `Ola, vim pelo link de agendamento da ${selectedBusiness.name}.`)} target="_blank" rel="noreferrer">
+              WhatsApp da loja
+            </a>
+          ) : null}
+          {selectedBusiness.contact?.instagram ? (
+            <a href={selectedBusiness.contact.instagram} target="_blank" rel="noreferrer">
+              Instagram
+            </a>
+          ) : null}
+        </div>
       </div>
 
       <aside className="panel">
@@ -114,6 +157,19 @@ export default function ClientePage({ businesses, addBooking, selectedBusinessId
           </div>
         </div>
         <form onSubmit={handleSubmit}>
+          {confirmation ? (
+            <div className="confirmation-box">
+              <strong>Agendamento recebido</strong>
+              <span>
+                {confirmation.service} em {confirmation.date} as {confirmation.time}
+              </span>
+              {confirmation.whatsappUrl ? (
+                <a href={confirmation.whatsappUrl} target="_blank" rel="noreferrer">
+                  Enviar mensagem no WhatsApp do cliente
+                </a>
+              ) : null}
+            </div>
+          ) : null}
           <label>
             Nome completo
             <input name="client" placeholder="Ex: Maria Souza" required />

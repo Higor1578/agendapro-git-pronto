@@ -20,6 +20,8 @@ export default function SuperAdminPage({ businesses, bookings, addBusiness, plan
     const type = form.get("type");
     const plan = form.get("plan");
     const owner = form.get("owner");
+    const whatsapp = form.get("whatsapp");
+    const instagram = form.get("instagram");
 
     addBusiness({
       id: slugify(`${name}-${Date.now()}`),
@@ -36,6 +38,11 @@ export default function SuperAdminPage({ businesses, bookings, addBusiness, plan
         closedDates: [],
         startTime: "08:00",
         endTime: "18:00"
+      },
+      contact: {
+        whatsapp,
+        instagram,
+        confirmationMessage: `Ola, seu agendamento em ${name} foi recebido. Em breve confirmaremos o horario.`
       },
       professionals: [owner],
       expenses: [],
@@ -149,6 +156,14 @@ export default function SuperAdminPage({ businesses, bookings, addBusiness, plan
             <label>
               Responsavel
               <input name="owner" placeholder="Nome do dono" required />
+            </label>
+            <label>
+              WhatsApp da loja
+              <input name="whatsapp" placeholder="Ex: 5511999999999" required />
+            </label>
+            <label>
+              Instagram da loja
+              <input name="instagram" placeholder="https://instagram.com/sualoja" />
             </label>
             <button className="primary-button full" type="submit">
               Salvar negocio
