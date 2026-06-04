@@ -19,6 +19,8 @@ create table if not exists public.businesses (
   trial_ends_at timestamptz,
   owner_user_id uuid references auth.users(id) on delete set null,
   schedule jsonb not null default '{"slotInterval":60,"workDays":[1,2,3,4,5,6],"closedDates":[],"startTime":"08:00","endTime":"18:00"}'::jsonb,
+  expenses jsonb not null default '[]'::jsonb,
+  opportunities jsonb not null default '[]'::jsonb,
   professionals jsonb not null default '[]'::jsonb,
   services jsonb not null default '[]'::jsonb,
   created_at timestamptz not null default now()
@@ -29,6 +31,8 @@ alter table public.businesses add column if not exists trial_days integer not nu
 alter table public.businesses add column if not exists trial_ends_at timestamptz;
 alter table public.businesses add column if not exists owner_user_id uuid references auth.users(id) on delete set null;
 alter table public.businesses add column if not exists schedule jsonb not null default '{"slotInterval":60,"workDays":[1,2,3,4,5,6],"closedDates":[],"startTime":"08:00","endTime":"18:00"}'::jsonb;
+alter table public.businesses add column if not exists expenses jsonb not null default '[]'::jsonb;
+alter table public.businesses add column if not exists opportunities jsonb not null default '[]'::jsonb;
 
 create table if not exists public.business_members (
   business_id text not null references public.businesses(id) on delete cascade,
@@ -205,7 +209,7 @@ on conflict (id) do update set
   stores_limit = excluded.stores_limit,
   bookings_limit = excluded.bookings_limit;
 
-insert into public.businesses (id, name, type, owner, plan, monthly, active, trial_days, schedule, professionals, services)
+insert into public.businesses (id, name, type, owner, plan, monthly, active, trial_days, schedule, expenses, opportunities, professionals, services)
 values
   (
     'brilho-car',
@@ -217,6 +221,8 @@ values
     true,
     14,
     '{"slotInterval":60,"workDays":[1,2,3,4,5,6],"closedDates":["2026-06-07"],"startTime":"08:00","endTime":"18:00"}',
+    '[{"id":"exp-1","name":"Produtos de limpeza","category":"Insumos","amount":320,"date":"2026-06-04"},{"id":"exp-2","name":"Agua e energia","category":"Operacional","amount":180,"date":"2026-06-04"}]',
+    '[{"id":"opp-1","client":"Joao Pereira","note":"Oferecer plano de lavagem mensal","value":180,"status":"aberta"}]',
     '["Marcos", "Diego", "Paula"]',
     '[{"name":"Lavagem simples","price":45,"duration":40},{"name":"Lavagem completa + cera","price":95,"duration":75},{"name":"Higienizacao interna","price":180,"duration":150}]'
   ),
@@ -230,6 +236,8 @@ values
     true,
     7,
     '{"slotInterval":30,"workDays":[2,3,4,5,6],"closedDates":["2026-06-07"],"startTime":"08:00","endTime":"18:00"}',
+    '[{"id":"exp-3","name":"Pomadas e laminas","category":"Insumos","amount":140,"date":"2026-06-04"}]',
+    '[{"id":"opp-2","client":"Bruno Santos","note":"Vender assinatura quinzenal","value":120,"status":"aberta"}]',
     '["Rafael", "Andre", "Lucas"]',
     '[{"name":"Corte masculino","price":45,"duration":35},{"name":"Barba","price":35,"duration":30},{"name":"Corte + barba","price":85,"duration":55}]'
   ),
@@ -243,6 +251,8 @@ values
     true,
     30,
     '{"slotInterval":45,"workDays":[1,2,3,4,5],"closedDates":["2026-06-07"],"startTime":"08:00","endTime":"18:00"}',
+    '[{"id":"exp-4","name":"Esmaltes","category":"Insumos","amount":210,"date":"2026-06-04"}]',
+    '[{"id":"opp-3","client":"Camila Rocha","note":"Retorno para manutencao em 20 dias","value":70,"status":"aberta"}]',
     '["Ana", "Camila", "Nina"]',
     '[{"name":"Manicure tradicional","price":38,"duration":45},{"name":"Pedicure","price":45,"duration":50},{"name":"Esmaltacao em gel","price":70,"duration":60}]'
   ),
@@ -256,6 +266,8 @@ values
     false,
     14,
     '{"slotInterval":60,"workDays":[1,2,3,4,5],"closedDates":["2026-06-07"],"startTime":"08:00","endTime":"18:00"}',
+    '[]',
+    '[]',
     '["Bianca", "Priscila", "Joana"]',
     '[{"name":"Escova","price":60,"duration":45},{"name":"Hidratacao","price":95,"duration":70},{"name":"Coloracao","price":190,"duration":150}]'
   )

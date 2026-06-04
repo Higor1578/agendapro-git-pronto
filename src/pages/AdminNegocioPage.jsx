@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import BookingCard from "../components/BookingCard.jsx";
 import MetricCard from "../components/MetricCard.jsx";
 import { businessTypes } from "../data/seed.js";
@@ -14,11 +14,18 @@ const weekDays = [
   { value: 6, label: "Sab" }
 ];
 
-export default function AdminNegocioPage({ businesses, bookings, updateBusiness, updateBookingStatus }) {
-  const [businessId, setBusinessId] = useState(businesses[0]?.id ?? "");
+export default function AdminNegocioPage({ businesses, bookings, selectedBusinessId, updateBusiness, updateBookingStatus }) {
+  const [businessId, setBusinessId] = useState(selectedBusinessId ?? businesses[0]?.id ?? "");
   const [status, setStatus] = useState("todos");
   const [professional, setProfessional] = useState("todos");
   const business = businesses.find((item) => item.id === businessId) ?? businesses[0];
+  const isAdminLocked = Boolean(selectedBusinessId);
+
+  useEffect(() => {
+    if (selectedBusinessId) {
+      setBusinessId(selectedBusinessId);
+    }
+  }, [selectedBusinessId]);
 
   const filteredBookings = useMemo(
     () =>
@@ -32,6 +39,11 @@ export default function AdminNegocioPage({ businesses, bookings, updateBusiness,
   );
 
   const revenue = filteredBookings.reduce((sum, booking) => sum + booking.price, 0);
+  const expensesTotal = (business.expenses ?? []).reduce((sum, expense) => sum + Number(expense.amount), 0);
+  const opportunitiesTotal = (business.opportunities ?? [])
+    .filter((opportunity) => opportunity.status !== "ganha")
+    .reduce((sum, opportunity) => sum + Number(opportunity.value), 0);
+  const profit = revenue - expensesTotal;
   const duration = filteredBookings.reduce((sum, booking) => sum + booking.duration, 0);
   const confirmed = filteredBookings.filter((booking) => booking.status === "confirmado").length;
   const confirmationRate = filteredBookings.length ? Math.round((confirmed / filteredBookings.length) * 100) : 0;
@@ -43,6 +55,10 @@ export default function AdminNegocioPage({ businesses, bookings, updateBusiness,
 
   function publicLink() {
     return `${window.location.origin}/loja/${business.id}`;
+  }
+
+  function adminLink() {
+    return `${window.location.origin}/admin/${business.id}`;
   }
 
   function addService(event) {
@@ -97,12 +113,56 @@ export default function AdminNegocioPage({ businesses, bookings, updateBusiness,
     );
   }
 
+  function addExpense(event) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const expense = {
+      id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+      name: form.get("name"),
+      category: form.get("category"),
+      amount: Number(form.get("amount")),
+      date: form.get("date")
+    };
+
+    updateBusiness(business.id, { expenses: [...(business.expenses ?? []), expense] });
+    event.currentTarget.reset();
+  }
+
+  function removeExpense(id) {
+    updateBusiness(business.id, { expenses: (business.expenses ?? []).filter((expense) => expense.id !== id) });
+  }
+
+  function addOpportunity(event) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const opportunity = {
+      id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+      client: form.get("client"),
+      note: form.get("note"),
+      value: Number(form.get("value")),
+      status: "aberta"
+    };
+
+    updateBusiness(business.id, { opportunities: [...(business.opportunities ?? []), opportunity] });
+    event.currentTarget.reset();
+  }
+
+  function updateOpportunity(id, updates) {
+    updateBusiness(business.id, {
+      opportunities: (business.opportunities ?? []).map((opportunity) =>
+        opportunity.id === id ? { ...opportunity, ...updates } : opportunity
+      )
+    });
+  }
+
+  const customers = Array.from(new Set(filteredBookings.map((booking) => booking.client)));
+
   return (
     <section>
       <div className="dashboard-heading">
         <div>
           <p className="eyebrow">Admin do negocio</p>
-          <h1>Painel separado para o dono ver todos os agendamentos</h1>
+          <h1>Dashboard e controle da loja</h1>
         </div>
         <span className="pill">{businessTypes[business.type]}</span>
       </div>
@@ -110,7 +170,7 @@ export default function AdminNegocioPage({ businesses, bookings, updateBusiness,
       <section className="filters" aria-label="Filtros do admin do negocio">
         <label>
           Meu negocio
-          <select onChange={handleBusinessChange} value={business.id}>
+          <select disabled={isAdminLocked} onChange={handleBusinessChange} value={business.id}>
             {businesses.map((item) => (
               <option key={item.id} value={item.id}>
                 {item.name}
@@ -142,8 +202,16 @@ export default function AdminNegocioPage({ businesses, bookings, updateBusiness,
       <section className="metric-grid">
         <MetricCard detail="Total filtrado" label="Agendamentos" value={filteredBookings.length} />
         <MetricCard detail="Valor dos servicos" label="Receita prevista" value={currency.format(revenue)} />
+        <MetricCard detail="Despesas cadastradas" label="Gastos" value={currency.format(expensesTotal)} />
+        <MetricCard detail="Receita menos gastos" label="Saldo estimado" value={currency.format(profit)} />
+        <MetricCard detail="Oportunidades abertas" label="Oportunidades" value={currency.format(opportunitiesTotal)} />
+      </section>
+
+      <section className="metric-grid compact-metrics">
         <MetricCard detail="Taxa de confirmacao" label="Confirmados" value={`${confirmationRate}%`} />
         <MetricCard detail="Tempo de atendimento" label="Horas ocupadas" value={`${Math.round((duration / 60) * 10) / 10}h`} />
+        <MetricCard detail="Clientes com agendamento" label="Clientes" value={customers.length} />
+        <MetricCard detail="Link interno da loja" label="Admin" value={`/admin/${business.id}`} />
       </section>
 
       <section className="panel">
@@ -181,6 +249,12 @@ export default function AdminNegocioPage({ businesses, bookings, updateBusiness,
             <strong>{publicLink()}</strong>
             <button className="secondary-button" onClick={() => navigator.clipboard?.writeText(publicLink())} type="button">
               Copiar link
+            </button>
+          </div>
+          <div className="copy-box subtle-box">
+            <strong>{adminLink()}</strong>
+            <button className="secondary-button" onClick={() => navigator.clipboard?.writeText(adminLink())} type="button">
+              Copiar admin
             </button>
           </div>
 
@@ -265,6 +339,85 @@ export default function AdminNegocioPage({ businesses, bookings, updateBusiness,
               <button className="tag removable" key={date} onClick={() => removeClosedDate(date)} type="button">
                 {date} x
               </button>
+            ))}
+          </div>
+        </aside>
+      </section>
+
+      <section className="admin-grid settings-area">
+        <div className="panel">
+          <div className="panel-header">
+            <div>
+              <h2>Controle de gastos</h2>
+              <p>Registre despesas para acompanhar quanto a loja esta gastando.</p>
+            </div>
+          </div>
+          <form className="inline-form expense-form" onSubmit={addExpense}>
+            <input name="name" placeholder="Descricao" required />
+            <input name="category" placeholder="Categoria" required />
+            <input min="0" name="amount" placeholder="Valor" required type="number" />
+            <input name="date" required type="date" />
+            <button className="primary-button" type="submit">Adicionar gasto</button>
+          </form>
+          <div className="finance-list">
+            {(business.expenses ?? []).map((expense) => (
+              <article className="finance-row" key={expense.id}>
+                <div>
+                  <strong>{expense.name}</strong>
+                  <span>{expense.category} - {expense.date}</span>
+                </div>
+                <div className="finance-actions">
+                  <strong>{currency.format(expense.amount)}</strong>
+                  <button className="secondary-button" onClick={() => removeExpense(expense.id)} type="button">
+                    Remover
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+
+        <aside className="panel">
+          <div className="panel-header">
+            <div>
+              <h2>Clientes e oportunidades</h2>
+              <p>Crie lembretes comerciais para vender mais.</p>
+            </div>
+          </div>
+          <form onSubmit={addOpportunity}>
+            <label>
+              Cliente
+              <select name="client" required>
+                {customers.length ? customers.map((client) => <option key={client}>{client}</option>) : <option>Novo cliente</option>}
+              </select>
+            </label>
+            <label>
+              Oportunidade
+              <input name="note" placeholder="Ex: oferecer pacote mensal" required />
+            </label>
+            <label>
+              Valor previsto
+              <input min="0" name="value" placeholder="120" required type="number" />
+            </label>
+            <button className="primary-button full" type="submit">Adicionar oportunidade</button>
+          </form>
+          <div className="opportunity-list">
+            {(business.opportunities ?? []).map((opportunity) => (
+              <article className="opportunity-card" key={opportunity.id}>
+                <strong>{opportunity.client}</strong>
+                <span>{opportunity.note}</span>
+                <div>
+                  <small>{currency.format(opportunity.value)}</small>
+                  <select
+                    onChange={(event) => updateOpportunity(opportunity.id, { status: event.target.value })}
+                    value={opportunity.status}
+                  >
+                    <option value="aberta">Aberta</option>
+                    <option value="ganha">Ganha</option>
+                    <option value="perdida">Perdida</option>
+                  </select>
+                </div>
+              </article>
             ))}
           </div>
         </aside>

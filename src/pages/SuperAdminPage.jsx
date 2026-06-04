@@ -38,6 +38,8 @@ export default function SuperAdminPage({ businesses, bookings, addBusiness, plan
         endTime: "18:00"
       },
       professionals: [owner],
+      expenses: [],
+      opportunities: [],
       services: defaultServices[type]
     });
 
@@ -83,7 +85,10 @@ export default function SuperAdminPage({ businesses, bookings, addBusiness, plan
                       {business.owner} - Plano {business.plan} - {business.trialDays ?? 0} dias gratis
                     </p>
                     <a className="store-link" href={`/loja/${business.id}`}>
-                      /loja/{business.id}
+                      Cliente: /loja/{business.id}
+                    </a>
+                    <a className="store-link" href={`/admin/${business.id}`}>
+                      Admin: /admin/{business.id}
                     </a>
                   </div>
                   <div className="tenant-stats">

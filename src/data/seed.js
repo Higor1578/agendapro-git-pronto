@@ -56,6 +56,13 @@ export const initialBusinesses = [
     active: true,
     trialDays: 14,
     schedule: defaultSchedule,
+    expenses: [
+      { id: "exp-1", name: "Produtos de limpeza", category: "Insumos", amount: 320, date: "2026-06-04" },
+      { id: "exp-2", name: "Agua e energia", category: "Operacional", amount: 180, date: "2026-06-04" }
+    ],
+    opportunities: [
+      { id: "opp-1", client: "Joao Pereira", note: "Oferecer plano de lavagem mensal", value: 180, status: "aberta" }
+    ],
     professionals: ["Marcos", "Diego", "Paula"],
     services: [
       { name: "Lavagem simples", price: 45, duration: 40 },
@@ -73,6 +80,8 @@ export const initialBusinesses = [
     active: true,
     trialDays: 7,
     schedule: { ...defaultSchedule, slotInterval: 30, workDays: [2, 3, 4, 5, 6] },
+    expenses: [{ id: "exp-3", name: "Pomadas e laminas", category: "Insumos", amount: 140, date: "2026-06-04" }],
+    opportunities: [{ id: "opp-2", client: "Bruno Santos", note: "Vender assinatura quinzenal", value: 120, status: "aberta" }],
     professionals: ["Rafael", "Andre", "Lucas"],
     services: [
       { name: "Corte masculino", price: 45, duration: 35 },
@@ -90,6 +99,8 @@ export const initialBusinesses = [
     active: true,
     trialDays: 30,
     schedule: { ...defaultSchedule, slotInterval: 45, workDays: [1, 2, 3, 4, 5] },
+    expenses: [{ id: "exp-4", name: "Esmaltes", category: "Insumos", amount: 210, date: "2026-06-04" }],
+    opportunities: [{ id: "opp-3", client: "Camila Rocha", note: "Retorno para manutencao em 20 dias", value: 70, status: "aberta" }],
     professionals: ["Ana", "Camila", "Nina"],
     services: [
       { name: "Manicure tradicional", price: 38, duration: 45 },
@@ -107,6 +118,8 @@ export const initialBusinesses = [
     active: false,
     trialDays: 14,
     schedule: { ...defaultSchedule, slotInterval: 60, workDays: [1, 2, 3, 4, 5] },
+    expenses: [],
+    opportunities: [],
     professionals: ["Bianca", "Priscila", "Joana"],
     services: [
       { name: "Escova", price: 60, duration: 45 },

@@ -24,11 +24,13 @@ function getInitialRoute() {
   const pathRoute = window.location.pathname;
   if (pathRoute === "/") return "/";
   if (pathRoute.startsWith("/loja/")) return pathRoute;
+  if (pathRoute.startsWith("/admin/")) return pathRoute;
   if (adminRoutes.includes(pathRoute)) return pathRoute;
 
   const hashRoute = window.location.hash.replace("#", "");
-  if (hashRoute === "/cliente") return defaultStoreRoute;
+  if (hashRoute === "/cliente") return "/";
   if (hashRoute.startsWith("/loja/")) return hashRoute;
+  if (hashRoute.startsWith("/admin/")) return hashRoute;
   if (adminRoutes.includes(hashRoute)) return hashRoute;
 
   return "/";
@@ -179,6 +181,7 @@ export default function App() {
   }, []);
 
   const publicStoreSlug = route.startsWith("/loja/") ? route.replace("/loja/", "") : null;
+  const adminStoreSlug = route.startsWith("/admin/") ? route.replace("/admin/", "") : null;
 
   return (
     <Layout businesses={businesses} route={route} setRoute={setRoute}>
@@ -191,8 +194,9 @@ export default function App() {
       {publicStoreSlug ? (
         <ClientePage addBooking={addBooking} businesses={businesses} selectedBusinessId={publicStoreSlug} />
       ) : null}
-      {route === "/admin" ? (
+      {route === "/admin" || adminStoreSlug ? (
         <AdminNegocioPage
+          selectedBusinessId={adminStoreSlug}
           bookings={bookings}
           businesses={businesses}
           businessesById={businessesById}

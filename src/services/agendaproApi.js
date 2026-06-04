@@ -11,6 +11,8 @@ function toBusiness(row) {
     active: row.active,
     trialDays: row.trial_days,
     schedule: row.schedule,
+    expenses: row.expenses ?? [],
+    opportunities: row.opportunities ?? [],
     professionals: row.professionals ?? [],
     services: row.services ?? []
   };
@@ -44,6 +46,8 @@ function fromBusiness(business) {
     active: business.active,
     trial_days: business.trialDays,
     schedule: business.schedule,
+    expenses: business.expenses ?? [],
+    opportunities: business.opportunities ?? [],
     professionals: business.professionals,
     services: business.services
   };

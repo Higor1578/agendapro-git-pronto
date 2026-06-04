@@ -59,6 +59,8 @@ export async function provisionStore(supabase: any, input: ProvisionInput) {
       startTime: "08:00",
       endTime: "18:00",
     },
+    expenses: [],
+    opportunities: [],
     professionals: [input.ownerName],
     services: defaultServices(input.businessType),
   });

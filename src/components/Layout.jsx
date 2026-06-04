@@ -3,7 +3,7 @@ export default function Layout({ businesses, route, setRoute, children }) {
   const navItems = [
     { path: "/", label: "Venda SaaS", group: "landing" },
     { path: `/loja/${firstStore}`, label: "Pagina da loja", group: "store" },
-    { path: "/admin", label: "Admin negocio", group: "admin" },
+    { path: `/admin/${firstStore}`, label: "Admin negocio", group: "admin" },
     { path: "/super-admin", label: "Super admin", group: "super-admin" }
   ];
 
@@ -22,7 +22,11 @@ export default function Layout({ businesses, route, setRoute, children }) {
           {navItems.map((item) => (
             <button
               className={`role-tab ${
-                item.group === "store" ? route.startsWith("/loja/") ? "active" : "" : route === item.path ? "active" : ""
+                item.group === "store"
+                  ? route.startsWith("/loja/") ? "active" : ""
+                  : item.group === "admin"
+                    ? route.startsWith("/admin") && route !== "/super-admin" ? "active" : ""
+                    : route === item.path ? "active" : ""
               }`}
               key={item.path}
               onClick={() => setRoute(item.path)}

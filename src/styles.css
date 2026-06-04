@@ -171,6 +171,10 @@ main {
   color: var(--accent-dark);
 }
 
+.compact-metrics {
+  margin-top: -6px;
+}
+
 .page-grid,
 .admin-grid {
   display: grid;
@@ -670,6 +674,11 @@ select {
   background: #f8fafc;
 }
 
+.subtle-box {
+  margin-top: 10px;
+  background: #ffffff;
+}
+
 .copy-box strong {
   overflow-wrap: anywhere;
 }
@@ -735,6 +744,55 @@ select {
 
 .removable {
   border: 0;
+}
+
+.expense-form {
+  grid-template-columns: minmax(150px, 1fr) 130px 110px 145px auto;
+  margin-top: 0;
+}
+
+.finance-list,
+.opportunity-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.finance-row,
+.opportunity-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfdff;
+}
+
+.finance-row span,
+.opportunity-card span,
+.opportunity-card small {
+  display: block;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.finance-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.opportunity-card {
+  display: grid;
+}
+
+.opportunity-card div {
+  display: grid;
+  grid-template-columns: 1fr 130px;
+  gap: 10px;
+  align-items: center;
 }
 
 .tenant-stats strong {
@@ -834,7 +892,17 @@ select {
   .service-row,
   .inline-form,
   .inline-form.one-line,
+  .expense-form,
   .copy-box {
+    grid-template-columns: 1fr;
+  }
+
+  .finance-row,
+  .finance-actions {
+    display: grid;
+  }
+
+  .opportunity-card div {
     grid-template-columns: 1fr;
   }
 
