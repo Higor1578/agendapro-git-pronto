@@ -1,5 +1,12 @@
 create extension if not exists "pgcrypto";
 
+create table if not exists public.profiles (
+  id uuid primary key references auth.users(id) on delete cascade,
+  full_name text,
+  role text not null default 'store_admin' check (role in ('super_admin', 'store_admin')),
+  created_at timestamptz not null default now()
+);
+
 create table if not exists public.businesses (
   id text primary key,
   name text not null,
@@ -9,6 +16,8 @@ create table if not exists public.businesses (
   monthly integer not null default 79,
   active boolean not null default true,
   trial_days integer not null default 7,
+  trial_ends_at timestamptz,
+  owner_user_id uuid references auth.users(id) on delete set null,
   schedule jsonb not null default '{"slotInterval":60,"workDays":[1,2,3,4,5,6],"closedDates":[],"startTime":"08:00","endTime":"18:00"}'::jsonb,
   professionals jsonb not null default '[]'::jsonb,
   services jsonb not null default '[]'::jsonb,
@@ -17,7 +26,84 @@ create table if not exists public.businesses (
 
 alter table public.businesses add column if not exists active boolean not null default true;
 alter table public.businesses add column if not exists trial_days integer not null default 7;
+alter table public.businesses add column if not exists trial_ends_at timestamptz;
+alter table public.businesses add column if not exists owner_user_id uuid references auth.users(id) on delete set null;
 alter table public.businesses add column if not exists schedule jsonb not null default '{"slotInterval":60,"workDays":[1,2,3,4,5,6],"closedDates":[],"startTime":"08:00","endTime":"18:00"}'::jsonb;
+
+create table if not exists public.business_members (
+  business_id text not null references public.businesses(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  role text not null default 'owner' check (role in ('owner', 'manager', 'staff')),
+  created_at timestamptz not null default now(),
+  primary key (business_id, user_id)
+);
+
+create table if not exists public.saas_plans (
+  id text primary key,
+  name text not null,
+  price integer not null default 0,
+  trial_days integer not null default 7,
+  stores_limit integer not null default 1,
+  bookings_limit integer not null default 100,
+  active boolean not null default true,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.subscriptions (
+  id uuid primary key default gen_random_uuid(),
+  business_id text not null references public.businesses(id) on delete cascade,
+  plan_id text not null references public.saas_plans(id),
+  provider text not null check (provider in ('stripe', 'mercadopago', 'manual')),
+  provider_customer_id text,
+  provider_subscription_id text,
+  status text not null default 'trialing' check (status in ('trialing', 'active', 'past_due', 'canceled', 'expired')),
+  current_period_end timestamptz,
+  trial_ends_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.checkout_sessions (
+  id uuid primary key default gen_random_uuid(),
+  provider text not null check (provider in ('stripe', 'mercadopago')),
+  plan_id text not null references public.saas_plans(id),
+  business_name text not null,
+  business_type text not null,
+  owner_name text not null,
+  owner_email text not null,
+  owner_phone text,
+  status text not null default 'created' check (status in ('created', 'paid', 'failed', 'expired')),
+  checkout_url text,
+  provider_session_id text,
+  business_id text references public.businesses(id) on delete set null,
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.payment_events (
+  id uuid primary key default gen_random_uuid(),
+  provider text not null check (provider in ('stripe', 'mercadopago')),
+  event_id text,
+  event_type text,
+  processed boolean not null default false,
+  payload jsonb not null,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.notification_jobs (
+  id uuid primary key default gen_random_uuid(),
+  business_id text references public.businesses(id) on delete cascade,
+  booking_id uuid references public.bookings(id) on delete cascade,
+  channel text not null check (channel in ('email', 'whatsapp')),
+  recipient text not null,
+  template text not null,
+  payload jsonb not null default '{}'::jsonb,
+  status text not null default 'pending' check (status in ('pending', 'sent', 'failed')),
+  error text,
+  created_at timestamptz not null default now(),
+  sent_at timestamptz
+);
 
 create table if not exists public.bookings (
   id uuid primary key default gen_random_uuid(),
@@ -37,6 +123,13 @@ create table if not exists public.bookings (
 
 alter table public.businesses enable row level security;
 alter table public.bookings enable row level security;
+alter table public.profiles enable row level security;
+alter table public.business_members enable row level security;
+alter table public.saas_plans enable row level security;
+alter table public.subscriptions enable row level security;
+alter table public.checkout_sessions enable row level security;
+alter table public.payment_events enable row level security;
+alter table public.notification_jobs enable row level security;
 
 drop policy if exists "demo businesses read" on public.businesses;
 drop policy if exists "demo businesses insert" on public.businesses;
@@ -69,6 +162,48 @@ on public.bookings for update
 to anon
 using (true)
 with check (true);
+
+drop policy if exists "demo plans read" on public.saas_plans;
+create policy "demo plans read"
+on public.saas_plans for select
+to anon
+using (active = true);
+
+drop policy if exists "admins read own profile" on public.profiles;
+create policy "admins read own profile"
+on public.profiles for select
+to authenticated
+using (id = auth.uid());
+
+drop policy if exists "members read own memberships" on public.business_members;
+create policy "members read own memberships"
+on public.business_members for select
+to authenticated
+using (user_id = auth.uid());
+
+drop policy if exists "members read own subscriptions" on public.subscriptions;
+create policy "members read own subscriptions"
+on public.subscriptions for select
+to authenticated
+using (
+  exists (
+    select 1 from public.business_members bm
+    where bm.business_id = subscriptions.business_id
+    and bm.user_id = auth.uid()
+  )
+);
+
+insert into public.saas_plans (id, name, price, trial_days, stores_limit, bookings_limit)
+values
+  ('Essencial', 'Essencial', 79, 7, 1, 120),
+  ('Profissional', 'Profissional', 149, 14, 3, 500),
+  ('Premium', 'Premium', 249, 30, 10, 2000)
+on conflict (id) do update set
+  name = excluded.name,
+  price = excluded.price,
+  trial_days = excluded.trial_days,
+  stores_limit = excluded.stores_limit,
+  bookings_limit = excluded.bookings_limit;
 
 insert into public.businesses (id, name, type, owner, plan, monthly, active, trial_days, schedule, professionals, services)
 values

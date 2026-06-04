@@ -34,6 +34,35 @@ Cada negocio usa o `id` como slug publico. Exemplo: o negocio `navalha-fina` abr
 - No admin da loja ele altera precos, adiciona/remove servicos, define dias de trabalho, datas bloqueadas e intervalo da agenda.
 - No super admin voce controla lojas, status ativo/desativado, dias gratis e valores dos planos.
 
+## Automacoes com Edge Functions
+
+Foram preparadas Edge Functions para:
+
+- criar checkout Stripe ou Mercado Pago
+- receber webhook de pagamento
+- criar usuario/admin e loja automaticamente
+- bloquear loja quando trial vencer
+- enviar e-mail/WhatsApp por fila
+- manter regras sensiveis fora do frontend
+
+Veja os arquivos em `supabase/functions` e as instrucoes em `supabase/functions/README.md`.
+
+Antes de usar em producao, configure os secrets do Supabase:
+
+```bash
+supabase secrets set --env-file supabase/.env
+```
+
+E publique as functions:
+
+```bash
+supabase functions deploy create-checkout-session
+supabase functions deploy payment-webhook
+supabase functions deploy provision-store
+supabase functions deploy expire-trials
+supabase functions deploy send-notification
+```
+
 Os agendamentos e negocios criados ficam salvos no `localStorage` do navegador.
 
 ## Conectar com Supabase

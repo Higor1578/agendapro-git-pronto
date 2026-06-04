@@ -1,0 +1,16 @@
+project_id = "jtrfkgkgdogjcuxknbmr"
+
+[functions.create-checkout-session]
+verify_jwt = false
+
+[functions.payment-webhook]
+verify_jwt = false
+
+[functions.provision-store]
+verify_jwt = false
+
+[functions.expire-trials]
+verify_jwt = false
+
+[functions.send-notification]
+verify_jwt = false
