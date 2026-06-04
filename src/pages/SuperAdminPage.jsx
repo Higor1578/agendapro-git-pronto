@@ -1,0 +1,128 @@
+import MetricCard from "../components/MetricCard.jsx";
+import { businessTypes, planPrices } from "../data/seed.js";
+import { currency, slugify } from "../utils/format.js";
+
+const defaultServices = {
+  "lava-jato": [{ name: "Lavagem completa", price: 80, duration: 70 }],
+  barbearia: [{ name: "Corte masculino", price: 45, duration: 35 }],
+  manicure: [{ name: "Manicure tradicional", price: 38, duration: 45 }],
+  salao: [{ name: "Escova", price: 60, duration: 45 }]
+};
+
+export default function SuperAdminPage({ businesses, bookings, addBusiness }) {
+  const mrr = businesses.reduce((sum, business) => sum + business.monthly, 0);
+  const revenue = bookings.reduce((sum, booking) => sum + booking.price, 0);
+
+  function handleSubmit(event) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const name = form.get("name");
+    const type = form.get("type");
+    const plan = form.get("plan");
+    const owner = form.get("owner");
+
+    addBusiness({
+      id: slugify(`${name}-${Date.now()}`),
+      name,
+      type,
+      owner,
+      plan,
+      monthly: planPrices[plan],
+      professionals: [owner],
+      services: defaultServices[type]
+    });
+
+    event.currentTarget.reset();
+  }
+
+  return (
+    <section>
+      <div className="dashboard-heading">
+        <div>
+          <p className="eyebrow">Super admin</p>
+          <h1>Sua area para gerenciar todos os negocios do SaaS</h1>
+        </div>
+        <span className="pill">Plataforma</span>
+      </div>
+
+      <section className="metric-grid">
+        <MetricCard detail="Clientes usando o sistema" label="Negocios ativos" value={businesses.length} />
+        <MetricCard detail="Reservas da plataforma" label="Agendamentos totais" value={bookings.length} />
+        <MetricCard detail="Mensalidade dos negocios" label="MRR simulado" value={currency.format(mrr)} />
+        <MetricCard detail="Servicos agendados" label="Receita dos clientes" value={currency.format(revenue)} />
+      </section>
+
+      <section className="admin-grid">
+        <div className="panel">
+          <div className="panel-header">
+            <div>
+              <h2>Negocios cadastrados</h2>
+              <p>Controle dos assinantes da sua plataforma.</p>
+            </div>
+          </div>
+          <div className="tenant-list">
+            {businesses.map((business) => {
+              const tenantBookings = bookings.filter((booking) => booking.businessId === business.id);
+              const tenantRevenue = tenantBookings.reduce((sum, booking) => sum + booking.price, 0);
+
+              return (
+                <article className="tenant-card" key={business.id}>
+                  <div>
+                    <span className="tag business-badge">{businessTypes[business.type]}</span>
+                    <strong>{business.name}</strong>
+                    <p>
+                      {business.owner} - Plano {business.plan}
+                    </p>
+                  </div>
+                  <div className="tenant-stats">
+                    <span>{tenantBookings.length} agendamentos</span>
+                    <strong>{currency.format(tenantRevenue)}</strong>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+
+        <aside className="panel">
+          <div className="panel-header">
+            <div>
+              <h2>Cadastrar negocio</h2>
+              <p>Somente o super admin acessa isso.</p>
+            </div>
+          </div>
+          <form onSubmit={handleSubmit}>
+            <label>
+              Nome do negocio
+              <input name="name" placeholder="Ex: Barbearia Premium" required />
+            </label>
+            <label>
+              Segmento
+              <select name="type" required>
+                <option value="lava-jato">Lava jato</option>
+                <option value="barbearia">Barbearia</option>
+                <option value="manicure">Manicure</option>
+                <option value="salao">Salao de beleza</option>
+              </select>
+            </label>
+            <label>
+              Plano
+              <select name="plan" required>
+                <option value="Essencial">Essencial - R$ 79</option>
+                <option value="Profissional">Profissional - R$ 149</option>
+                <option value="Premium">Premium - R$ 249</option>
+              </select>
+            </label>
+            <label>
+              Responsavel
+              <input name="owner" placeholder="Nome do dono" required />
+            </label>
+            <button className="primary-button full" type="submit">
+              Salvar negocio
+            </button>
+          </form>
+        </aside>
+      </section>
+    </section>
+  );
+}
