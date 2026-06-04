@@ -73,6 +73,9 @@ export default function SuperAdminPage({ businesses, bookings, addBusiness }) {
                     <p>
                       {business.owner} - Plano {business.plan}
                     </p>
+                    <a className="store-link" href={`/loja/${business.id}`}>
+                      /loja/{business.id}
+                    </a>
                   </div>
                   <div className="tenant-stats">
                     <span>{tenantBookings.length} agendamentos</span>

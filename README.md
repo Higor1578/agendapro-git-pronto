@@ -20,9 +20,11 @@ Nao abra o `index.html` direto, porque React/Vite precisa do servidor local.
 
 ## Areas
 
-- Cliente: `http://localhost:5173/#/cliente`
-- Admin do negocio: `http://localhost:5173/#/admin`
-- Super admin: `http://localhost:5173/#/super-admin`
+- Cliente por loja: `http://localhost:5173/loja/brilho-car`
+- Admin do negocio: `http://localhost:5173/admin`
+- Super admin: `http://localhost:5173/super-admin`
+
+Cada negocio usa o `id` como slug publico. Exemplo: o negocio `navalha-fina` abre em `/loja/navalha-fina`.
 
 Os agendamentos e negocios criados ficam salvos no `localStorage` do navegador.
 

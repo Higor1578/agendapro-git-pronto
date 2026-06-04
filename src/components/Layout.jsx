@@ -1,10 +1,11 @@
-const navItems = [
-  { path: "/cliente", label: "Cliente agenda" },
-  { path: "/admin", label: "Admin negocio" },
-  { path: "/super-admin", label: "Super admin" }
-];
+export default function Layout({ businesses, route, setRoute, children }) {
+  const firstStore = businesses[0]?.id ?? "brilho-car";
+  const navItems = [
+    { path: `/loja/${firstStore}`, label: "Pagina da loja", group: "store" },
+    { path: "/admin", label: "Admin negocio", group: "admin" },
+    { path: "/super-admin", label: "Super admin", group: "super-admin" }
+  ];
 
-export default function Layout({ route, setRoute, children }) {
   return (
     <>
       <header className="site-header">
@@ -19,7 +20,9 @@ export default function Layout({ route, setRoute, children }) {
         <nav className="role-tabs" aria-label="Areas separadas">
           {navItems.map((item) => (
             <button
-              className={`role-tab ${route === item.path ? "active" : ""}`}
+              className={`role-tab ${
+                item.group === "store" ? route.startsWith("/loja/") ? "active" : "" : route === item.path ? "active" : ""
+              }`}
               key={item.path}
               onClick={() => setRoute(item.path)}
               type="button"

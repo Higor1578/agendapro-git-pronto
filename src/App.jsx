@@ -12,15 +12,25 @@ import {
 } from "./services/agendaproApi.js";
 import { isSupabaseConfigured } from "./services/supabaseClient.js";
 
-const routes = ["/cliente", "/admin", "/super-admin"];
+const adminRoutes = ["/admin", "/super-admin"];
+const defaultStoreRoute = "/loja/brilho-car";
 const storageKeys = {
   businesses: "agendapro:businesses",
   bookings: "agendapro:bookings"
 };
 
 function getInitialRoute() {
+  const pathRoute = window.location.pathname;
+  if (pathRoute === "/") return defaultStoreRoute;
+  if (pathRoute.startsWith("/loja/")) return pathRoute;
+  if (adminRoutes.includes(pathRoute)) return pathRoute;
+
   const hashRoute = window.location.hash.replace("#", "");
-  return routes.includes(hashRoute) ? hashRoute : "/cliente";
+  if (hashRoute === "/cliente") return defaultStoreRoute;
+  if (hashRoute.startsWith("/loja/")) return hashRoute;
+  if (adminRoutes.includes(hashRoute)) return hashRoute;
+
+  return defaultStoreRoute;
 }
 
 function loadFromStorage(key, fallback) {
@@ -47,7 +57,7 @@ export default function App() {
 
   function setRoute(nextRoute) {
     setRouteState(nextRoute);
-    window.location.hash = nextRoute;
+    window.history.pushState({}, "", nextRoute);
   }
 
   function notify(message) {
@@ -110,9 +120,13 @@ export default function App() {
   }
 
   useEffect(() => {
-    const onHashChange = () => setRouteState(getInitialRoute());
-    window.addEventListener("hashchange", onHashChange);
-    return () => window.removeEventListener("hashchange", onHashChange);
+    if (window.location.pathname === "/") {
+      window.history.replaceState({}, "", defaultStoreRoute);
+    }
+
+    const onPopState = () => setRouteState(getInitialRoute());
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
   }, []);
 
   useEffect(() => {
@@ -150,14 +164,18 @@ export default function App() {
     };
   }, []);
 
+  const publicStoreSlug = route.startsWith("/loja/") ? route.replace("/loja/", "") : null;
+
   return (
-    <Layout route={route} setRoute={setRoute}>
+    <Layout businesses={businesses} route={route} setRoute={setRoute}>
       <div className="system-banner">
         <span>{dataSource === "supabase" ? "Conectado ao Supabase" : "Modo local/demo"}</span>
         <strong>{isLoading ? "Carregando dados..." : "Pronto para usar"}</strong>
       </div>
 
-      {route === "/cliente" ? <ClientePage addBooking={addBooking} businesses={businesses} /> : null}
+      {publicStoreSlug ? (
+        <ClientePage addBooking={addBooking} businesses={businesses} selectedBusinessId={publicStoreSlug} />
+      ) : null}
       {route === "/admin" ? (
         <AdminNegocioPage
           bookings={bookings}

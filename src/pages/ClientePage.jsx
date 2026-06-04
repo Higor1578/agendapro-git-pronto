@@ -1,13 +1,30 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { businessTypes, timeSlots } from "../data/seed.js";
 import { currency } from "../utils/format.js";
 
-export default function ClientePage({ businesses, addBooking }) {
-  const [businessId, setBusinessId] = useState(businesses[0]?.id ?? "");
+export default function ClientePage({ businesses, addBooking, selectedBusinessId }) {
+  const [businessId, setBusinessId] = useState(selectedBusinessId ?? businesses[0]?.id ?? "");
   const selectedBusiness = useMemo(
     () => businesses.find((business) => business.id === businessId) ?? businesses[0],
     [businessId, businesses]
   );
+  const isStoreLocked = Boolean(selectedBusinessId);
+
+  useEffect(() => {
+    if (selectedBusinessId) {
+      setBusinessId(selectedBusinessId);
+    }
+  }, [selectedBusinessId]);
+
+  if (!selectedBusiness) {
+    return (
+      <section className="panel">
+        <p className="eyebrow">Loja nao encontrada</p>
+        <h1>Esse link de agendamento nao existe.</h1>
+        <p>Confira o slug da loja ou cadastre o negocio no super admin.</p>
+      </section>
+    );
+  }
 
   function handleSubmit(event) {
     event.preventDefault();
@@ -34,11 +51,11 @@ export default function ClientePage({ businesses, addBooking }) {
   return (
     <section className="page-grid">
       <div className="booking-hero">
-        <p className="eyebrow">Pagina separada do cliente</p>
-        <h1>Cliente faz o agendamento sem acessar o painel interno</h1>
+        <p className="eyebrow">{businessTypes[selectedBusiness.type]}</p>
+        <h1>{selectedBusiness.name}</h1>
         <p>
-          Essa tela e publica para Android, iPhone, iPad e Windows. O cliente escolhe o negocio,
-          servico, profissional e horario.
+          Link publico da loja para o cliente escolher servico, profissional e horario sem acessar
+          o painel interno.
         </p>
         <div className="trust-row">
           <span>Formulario publico</span>
@@ -63,16 +80,24 @@ export default function ClientePage({ businesses, addBooking }) {
             WhatsApp
             <input name="phone" placeholder="Ex: (11) 99999-0000" required />
           </label>
-          <label>
-            Estabelecimento
-            <select name="businessId" onChange={(event) => setBusinessId(event.target.value)} value={selectedBusiness.id}>
-              {businesses.map((business) => (
-                <option key={business.id} value={business.id}>
-                  {business.name} - {businessTypes[business.type]}
-                </option>
-              ))}
-            </select>
-          </label>
+          {isStoreLocked ? (
+            <div className="locked-store">
+              <span>Estabelecimento</span>
+              <strong>{selectedBusiness.name}</strong>
+              <small>/loja/{selectedBusiness.id}</small>
+            </div>
+          ) : (
+            <label>
+              Estabelecimento
+              <select name="businessId" onChange={(event) => setBusinessId(event.target.value)} value={selectedBusiness.id}>
+                {businesses.map((business) => (
+                  <option key={business.id} value={business.id}>
+                    {business.name} - {businessTypes[business.type]}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
           <label>
             Servico
             <select name="service" required>
@@ -118,8 +143,8 @@ export default function ClientePage({ businesses, addBooking }) {
       <section className="panel wide-panel">
         <div className="panel-header">
           <div>
-            <h2>Negocios disponiveis</h2>
-            <p>Cards publicos para o cliente escolher onde agendar.</p>
+            <h2>Outros links de lojas</h2>
+            <p>Cada negocio tem uma URL publica propria.</p>
           </div>
         </div>
         <div className="business-grid">
@@ -131,6 +156,9 @@ export default function ClientePage({ businesses, addBooking }) {
                 {business.professionals.length} profissionais, servicos a partir de{" "}
                 {currency.format(business.services[0].price)}.
               </p>
+              <a className="store-link" href={`/loja/${business.id}`}>
+                /loja/{business.id}
+              </a>
             </article>
           ))}
         </div>
