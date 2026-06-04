@@ -122,7 +122,7 @@ create table if not exists public.notification_jobs (
   id uuid primary key default gen_random_uuid(),
   business_id text references public.businesses(id) on delete cascade,
   booking_id uuid references public.bookings(id) on delete cascade,
-  channel text not null check (channel in ('email', 'whatsapp')),
+  channel text not null check (channel in ('email', 'whatsapp', 'push')),
   recipient text not null,
   template text not null,
   payload jsonb not null default '{}'::jsonb,
@@ -130,6 +130,34 @@ create table if not exists public.notification_jobs (
   error text,
   created_at timestamptz not null default now(),
   sent_at timestamptz
+);
+
+do $$
+begin
+  if exists (
+    select 1
+    from information_schema.constraint_column_usage
+    where table_name = 'notification_jobs'
+    and constraint_name like '%channel%'
+  ) then
+    alter table public.notification_jobs drop constraint if exists notification_jobs_channel_check;
+  end if;
+end $$;
+
+alter table public.notification_jobs
+add constraint notification_jobs_channel_check
+check (channel in ('email', 'whatsapp', 'push'));
+
+create table if not exists public.push_subscriptions (
+  id uuid primary key default gen_random_uuid(),
+  business_id text not null references public.businesses(id) on delete cascade,
+  endpoint text not null unique,
+  p256dh text not null,
+  auth text not null,
+  user_agent text,
+  active boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
 );
 
 alter table public.businesses enable row level security;
@@ -141,6 +169,7 @@ alter table public.subscriptions enable row level security;
 alter table public.checkout_sessions enable row level security;
 alter table public.payment_events enable row level security;
 alter table public.notification_jobs enable row level security;
+alter table public.push_subscriptions enable row level security;
 
 drop policy if exists "demo businesses read" on public.businesses;
 drop policy if exists "demo businesses insert" on public.businesses;
@@ -210,6 +239,25 @@ using (
     and bm.user_id = auth.uid()
   )
 );
+
+drop policy if exists "demo push subscriptions insert" on public.push_subscriptions;
+create policy "demo push subscriptions insert"
+on public.push_subscriptions for insert
+to anon, authenticated
+with check (true);
+
+drop policy if exists "demo push subscriptions update" on public.push_subscriptions;
+create policy "demo push subscriptions update"
+on public.push_subscriptions for update
+to anon, authenticated
+using (true)
+with check (true);
+
+drop policy if exists "demo notification jobs insert" on public.notification_jobs;
+create policy "demo notification jobs insert"
+on public.notification_jobs for insert
+to anon, authenticated
+with check (true);
 
 insert into public.saas_plans (id, name, price, trial_days, stores_limit, bookings_limit)
 values

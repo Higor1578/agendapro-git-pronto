@@ -97,6 +97,24 @@ export async function createRemoteBooking(booking) {
 
   const { data, error } = await supabase.from("bookings").insert(fromBooking(booking)).select("*").single();
   if (error) throw error;
+
+  await supabase.from("notification_jobs").insert({
+    business_id: data.business_id,
+    booking_id: data.id,
+    channel: "push",
+    recipient: data.business_id,
+    template: "booking-created",
+    payload: {
+      title: "Novo agendamento",
+      body: `${data.client} agendou ${data.service} em ${data.date} as ${data.time}.`,
+      url: `/admin/${data.business_id}`
+    }
+  });
+
+  supabase.functions.invoke("send-push-notification", {
+    body: { businessId: data.business_id }
+  });
+
   return toBooking(data);
 }
 

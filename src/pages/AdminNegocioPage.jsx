@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import BookingCard from "../components/BookingCard.jsx";
 import MetricCard from "../components/MetricCard.jsx";
 import { businessTypes } from "../data/seed.js";
+import { registerStorePushSubscription } from "../services/pushNotifications.js";
 import { currency, sortBookings } from "../utils/format.js";
 
 const weekDays = [
@@ -18,6 +19,7 @@ export default function AdminNegocioPage({ businesses, bookings, selectedBusines
   const [businessId, setBusinessId] = useState(selectedBusinessId ?? businesses[0]?.id ?? "");
   const [status, setStatus] = useState("todos");
   const [professional, setProfessional] = useState("todos");
+  const [pushStatus, setPushStatus] = useState("");
   const business = businesses.find((item) => item.id === businessId) ?? businesses[0];
   const isAdminLocked = Boolean(selectedBusinessId);
 
@@ -75,6 +77,16 @@ export default function AdminNegocioPage({ businesses, bookings, selectedBusines
 
   function updateContact(field, value) {
     updateBusiness(business.id, { contact: { ...(business.contact ?? {}), [field]: value } });
+  }
+
+  async function enablePushNotifications() {
+    try {
+      setPushStatus("Solicitando permissao...");
+      await registerStorePushSubscription(business.id);
+      setPushStatus("Notificacoes ativadas neste aparelho.");
+    } catch (error) {
+      setPushStatus(error.message);
+    }
   }
 
   function updateService(index, field, value) {
@@ -261,6 +273,13 @@ export default function AdminNegocioPage({ businesses, bookings, selectedBusines
               Copiar admin
             </button>
           </div>
+          <div className="copy-box subtle-box">
+            <strong>Receber alerta quando entrar agendamento</strong>
+            <button className="secondary-button" onClick={enablePushNotifications} type="button">
+              Ativar notificacoes
+            </button>
+          </div>
+          {pushStatus ? <div className="auth-warning">{pushStatus}</div> : null}
 
           <div className="panel-header inner-header">
             <div>
