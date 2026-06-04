@@ -114,6 +114,21 @@ main {
   padding: 28px;
 }
 
+.error-screen {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+}
+
+.error-screen .panel {
+  max-width: 620px;
+}
+
+.error-screen p {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
 .system-banner {
   display: flex;
   justify-content: space-between;
