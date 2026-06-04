@@ -2,6 +2,24 @@ import { useEffect, useMemo, useState } from "react";
 import { businessTypes, timeSlots } from "../data/seed.js";
 import { currency } from "../utils/format.js";
 
+function generateSlots(schedule) {
+  if (!schedule?.slotInterval) return timeSlots;
+  const [startHour, startMinute] = (schedule.startTime ?? "08:00").split(":").map(Number);
+  const [endHour, endMinute] = (schedule.endTime ?? "18:00").split(":").map(Number);
+  const slots = [];
+  let current = startHour * 60 + startMinute;
+  const end = endHour * 60 + endMinute;
+
+  while (current < end) {
+    const hour = String(Math.floor(current / 60)).padStart(2, "0");
+    const minute = String(current % 60).padStart(2, "0");
+    slots.push(`${hour}:${minute}`);
+    current += Number(schedule.slotInterval);
+  }
+
+  return slots;
+}
+
 export default function ClientePage({ businesses, addBooking, selectedBusinessId }) {
   const [businessId, setBusinessId] = useState(selectedBusinessId ?? businesses[0]?.id ?? "");
   const selectedBusiness = useMemo(
@@ -26,17 +44,41 @@ export default function ClientePage({ businesses, addBooking, selectedBusinessId
     );
   }
 
+  if (selectedBusiness.active === false) {
+    return (
+      <section className="panel">
+        <p className="eyebrow">Loja indisponivel</p>
+        <h1>{selectedBusiness.name}</h1>
+        <p>Essa loja esta temporariamente desativada e nao aceita novos agendamentos.</p>
+      </section>
+    );
+  }
+
+  const slots = generateSlots(selectedBusiness.schedule);
+
   function handleSubmit(event) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     const service = selectedBusiness.services.find((item) => item.name === form.get("service"));
+    const date = form.get("date");
+    const weekday = new Date(`${date}T12:00:00`).getDay();
+
+    if (!(selectedBusiness.schedule?.workDays ?? []).includes(weekday)) {
+      alert("Essa loja nao aceita agendamento nesse dia da semana.");
+      return;
+    }
+
+    if ((selectedBusiness.schedule?.closedDates ?? []).includes(date)) {
+      alert("Essa data esta bloqueada pela loja.");
+      return;
+    }
 
     addBooking({
       client: form.get("client"),
       phone: form.get("phone"),
       businessId: selectedBusiness.id,
       service: service.name,
-      date: form.get("date"),
+      date,
       time: form.get("time"),
       professional: form.get("professional"),
       status: "pendente",
@@ -116,7 +158,7 @@ export default function ClientePage({ businesses, addBooking, selectedBusinessId
             <label>
               Horario
               <select name="time" required>
-                {timeSlots.map((slot) => (
+                {slots.map((slot) => (
                   <option key={slot}>{slot}</option>
                 ))}
               </select>

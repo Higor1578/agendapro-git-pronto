@@ -8,6 +8,9 @@ function toBusiness(row) {
     owner: row.owner,
     plan: row.plan,
     monthly: row.monthly,
+    active: row.active,
+    trialDays: row.trial_days,
+    schedule: row.schedule,
     professionals: row.professionals ?? [],
     services: row.services ?? []
   };
@@ -38,6 +41,9 @@ function fromBusiness(business) {
     owner: business.owner,
     plan: business.plan,
     monthly: business.monthly,
+    active: business.active,
+    trial_days: business.trialDays,
+    schedule: business.schedule,
     professionals: business.professionals,
     services: business.services
   };

@@ -1,6 +1,7 @@
 export default function Layout({ businesses, route, setRoute, children }) {
   const firstStore = businesses[0]?.id ?? "brilho-car";
   const navItems = [
+    { path: "/", label: "Venda SaaS", group: "landing" },
     { path: `/loja/${firstStore}`, label: "Pagina da loja", group: "store" },
     { path: "/admin", label: "Admin negocio", group: "admin" },
     { path: "/super-admin", label: "Super admin", group: "super-admin" }

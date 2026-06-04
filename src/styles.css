@@ -202,6 +202,62 @@ main {
   color: #ffffff;
 }
 
+.sales-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 18px;
+  align-items: stretch;
+  min-height: 520px;
+  padding: 48px;
+  border-radius: 8px;
+  background:
+    linear-gradient(120deg, rgba(21, 27, 36, 0.9), rgba(15, 118, 110, 0.9)),
+    url("https://images.unsplash.com/photo-1556742502-ec7c0e9f34b1?auto=format&fit=crop&w=1600&q=80");
+  background-position: center;
+  background-size: cover;
+  color: #ffffff;
+}
+
+.sales-hero h1 {
+  max-width: 860px;
+  margin-bottom: 18px;
+  font-size: clamp(38px, 6vw, 72px);
+  line-height: 1;
+}
+
+.sales-hero p {
+  max-width: 720px;
+  color: #e8f3f1;
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+.sales-hero .eyebrow {
+  color: #a7f3d0;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.hero-preview {
+  display: grid;
+  align-content: center;
+  gap: 12px;
+  padding: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.hero-preview strong {
+  font-size: 24px;
+  line-height: 1.2;
+}
+
 .booking-hero h1 {
   max-width: 780px;
   margin: 0 0 18px;
@@ -305,6 +361,11 @@ h2 {
   margin-bottom: 0;
   color: var(--muted);
   font-size: 14px;
+}
+
+.landing-section,
+.settings-area {
+  margin-top: 18px;
 }
 
 form {
@@ -425,6 +486,66 @@ select {
   line-height: 1.5;
 }
 
+.store-status,
+.status-button {
+  width: max-content;
+  border: 0;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.store-status.active,
+.status-button.active {
+  background: #dcfce7;
+  color: var(--green);
+}
+
+.store-status.inactive,
+.status-button.inactive {
+  background: #ffe4e6;
+  color: var(--red);
+}
+
+.plans-grid,
+.plans-editor {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.plans-grid {
+  grid-template-columns: repeat(3, minmax(190px, 1fr));
+}
+
+.plan-card,
+.plan-edit-card {
+  display: grid;
+  gap: 10px;
+}
+
+.plan-card strong {
+  font-size: 28px;
+}
+
+.plan-card p {
+  margin-bottom: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.plans-editor {
+  grid-template-columns: repeat(3, minmax(190px, 1fr));
+}
+
+.plan-edit-card {
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfdff;
+}
+
 .booking-list,
 .tenant-list {
   display: grid;
@@ -534,6 +655,88 @@ select {
   white-space: nowrap;
 }
 
+.tenant-stats label {
+  min-width: 120px;
+}
+
+.copy-box {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.copy-box strong {
+  overflow-wrap: anywhere;
+}
+
+.inner-header {
+  margin-top: 22px;
+}
+
+.service-editor {
+  display: grid;
+  gap: 10px;
+}
+
+.service-row,
+.inline-form {
+  display: grid;
+  gap: 10px;
+}
+
+.service-row {
+  grid-template-columns: minmax(180px, 1fr) 110px 110px auto;
+}
+
+.inline-form {
+  grid-template-columns: minmax(180px, 1fr) 110px 110px auto;
+  margin-top: 12px;
+}
+
+.inline-form.one-line {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.weekday-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin: 14px 0;
+}
+
+.check-tile {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfdff;
+  color: var(--ink);
+}
+
+.check-tile input {
+  width: auto;
+  min-height: auto;
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.removable {
+  border: 0;
+}
+
 .tenant-stats strong {
   color: var(--ink);
 }
@@ -584,8 +787,14 @@ select {
   }
 
   .business-grid,
-  .metric-grid {
+  .metric-grid,
+  .plans-grid,
+  .plans-editor {
     grid-template-columns: repeat(2, minmax(160px, 1fr));
+  }
+
+  .sales-hero {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -619,7 +828,13 @@ select {
   .filters,
   .metric-grid,
   .business-grid,
-  .form-row {
+  .form-row,
+  .plans-grid,
+  .plans-editor,
+  .service-row,
+  .inline-form,
+  .inline-form.one-line,
+  .copy-box {
     grid-template-columns: 1fr;
   }
 

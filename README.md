@@ -20,11 +20,19 @@ Nao abra o `index.html` direto, porque React/Vite precisa do servidor local.
 
 ## Areas
 
+- Pagina de venda: `http://localhost:5173/`
 - Cliente por loja: `http://localhost:5173/loja/brilho-car`
 - Admin do negocio: `http://localhost:5173/admin`
 - Super admin: `http://localhost:5173/super-admin`
 
 Cada negocio usa o `id` como slug publico. Exemplo: o negocio `navalha-fina` abre em `/loja/navalha-fina`.
+
+## Fluxo do SaaS
+
+- A pagina inicial vende o produto e mostra modelos de loja.
+- O cliente do seu SaaS entra no admin e copia o link publico da propria loja.
+- No admin da loja ele altera precos, adiciona/remove servicos, define dias de trabalho, datas bloqueadas e intervalo da agenda.
+- No super admin voce controla lojas, status ativo/desativado, dias gratis e valores dos planos.
 
 Os agendamentos e negocios criados ficam salvos no `localStorage` do navegador.
 

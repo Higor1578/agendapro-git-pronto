@@ -9,7 +9,7 @@ const defaultServices = {
   salao: [{ name: "Escova", price: 60, duration: 45 }]
 };
 
-export default function SuperAdminPage({ businesses, bookings, addBusiness }) {
+export default function SuperAdminPage({ businesses, bookings, addBusiness, plans, updateBusiness, updatePlan }) {
   const mrr = businesses.reduce((sum, business) => sum + business.monthly, 0);
   const revenue = bookings.reduce((sum, booking) => sum + booking.price, 0);
 
@@ -27,7 +27,16 @@ export default function SuperAdminPage({ businesses, bookings, addBusiness }) {
       type,
       owner,
       plan,
-      monthly: planPrices[plan],
+      monthly: plans.find((item) => item.id === plan)?.price ?? planPrices[plan],
+      active: true,
+      trialDays: plans.find((item) => item.id === plan)?.trialDays ?? 7,
+      schedule: {
+        slotInterval: 60,
+        workDays: [1, 2, 3, 4, 5, 6],
+        closedDates: [],
+        startTime: "08:00",
+        endTime: "18:00"
+      },
       professionals: [owner],
       services: defaultServices[type]
     });
@@ -71,13 +80,29 @@ export default function SuperAdminPage({ businesses, bookings, addBusiness }) {
                     <span className="tag business-badge">{businessTypes[business.type]}</span>
                     <strong>{business.name}</strong>
                     <p>
-                      {business.owner} - Plano {business.plan}
+                      {business.owner} - Plano {business.plan} - {business.trialDays ?? 0} dias gratis
                     </p>
                     <a className="store-link" href={`/loja/${business.id}`}>
                       /loja/{business.id}
                     </a>
                   </div>
                   <div className="tenant-stats">
+                    <button
+                      className={`status-button ${business.active === false ? "inactive" : "active"}`}
+                      onClick={() => updateBusiness(business.id, { active: business.active === false })}
+                      type="button"
+                    >
+                      {business.active === false ? "Desativada" : "Ativa"}
+                    </button>
+                    <label>
+                      Dias gratis
+                      <input
+                        min="0"
+                        type="number"
+                        value={business.trialDays ?? 0}
+                        onChange={(event) => updateBusiness(business.id, { trialDays: Number(event.target.value) })}
+                      />
+                    </label>
                     <span>{tenantBookings.length} agendamentos</span>
                     <strong>{currency.format(tenantRevenue)}</strong>
                   </div>
@@ -125,6 +150,49 @@ export default function SuperAdminPage({ businesses, bookings, addBusiness }) {
             </button>
           </form>
         </aside>
+      </section>
+
+      <section className="panel landing-section">
+        <div className="panel-header">
+          <div>
+            <h2>Planos do SaaS</h2>
+            <p>Voce controla valores, dias gratis e limites comerciais.</p>
+          </div>
+        </div>
+        <div className="plans-editor">
+          {plans.map((plan) => (
+            <article className="plan-edit-card" key={plan.id}>
+              <strong>{plan.name}</strong>
+              <label>
+                Valor mensal
+                <input
+                  min="0"
+                  type="number"
+                  value={plan.price}
+                  onChange={(event) => updatePlan(plan.id, { price: Number(event.target.value) })}
+                />
+              </label>
+              <label>
+                Dias gratis
+                <input
+                  min="0"
+                  type="number"
+                  value={plan.trialDays}
+                  onChange={(event) => updatePlan(plan.id, { trialDays: Number(event.target.value) })}
+                />
+              </label>
+              <label>
+                Limite de agendamentos
+                <input
+                  min="0"
+                  type="number"
+                  value={plan.bookingsLimit}
+                  onChange={(event) => updatePlan(plan.id, { bookingsLimit: Number(event.target.value) })}
+                />
+              </label>
+            </article>
+          ))}
+        </div>
       </section>
     </section>
   );

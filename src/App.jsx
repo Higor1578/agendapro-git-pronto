@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import Layout from "./components/Layout.jsx";
-import { initialBookings, initialBusinesses } from "./data/seed.js";
+import { initialBookings, initialBusinesses, initialPlans } from "./data/seed.js";
 import AdminNegocioPage from "./pages/AdminNegocioPage.jsx";
 import ClientePage from "./pages/ClientePage.jsx";
+import LandingPage from "./pages/LandingPage.jsx";
 import SuperAdminPage from "./pages/SuperAdminPage.jsx";
 import {
   createRemoteBooking,
@@ -13,15 +14,15 @@ import {
 import { isSupabaseConfigured } from "./services/supabaseClient.js";
 
 const adminRoutes = ["/admin", "/super-admin"];
-const defaultStoreRoute = "/loja/brilho-car";
 const storageKeys = {
   businesses: "agendapro:businesses",
-  bookings: "agendapro:bookings"
+  bookings: "agendapro:bookings",
+  plans: "agendapro:plans"
 };
 
 function getInitialRoute() {
   const pathRoute = window.location.pathname;
-  if (pathRoute === "/") return defaultStoreRoute;
+  if (pathRoute === "/") return "/";
   if (pathRoute.startsWith("/loja/")) return pathRoute;
   if (adminRoutes.includes(pathRoute)) return pathRoute;
 
@@ -30,7 +31,7 @@ function getInitialRoute() {
   if (hashRoute.startsWith("/loja/")) return hashRoute;
   if (adminRoutes.includes(hashRoute)) return hashRoute;
 
-  return defaultStoreRoute;
+  return "/";
 }
 
 function loadFromStorage(key, fallback) {
@@ -46,6 +47,7 @@ export default function App() {
   const [route, setRouteState] = useState(getInitialRoute);
   const [businesses, setBusinesses] = useState(() => loadFromStorage(storageKeys.businesses, initialBusinesses));
   const [bookings, setBookings] = useState(() => loadFromStorage(storageKeys.bookings, initialBookings));
+  const [plans, setPlans] = useState(() => loadFromStorage(storageKeys.plans, initialPlans));
   const [isLoading, setIsLoading] = useState(isSupabaseConfigured);
   const [dataSource, setDataSource] = useState(isSupabaseConfigured ? "supabase" : "local");
   const [toast, setToast] = useState("");
@@ -119,11 +121,19 @@ export default function App() {
     notify("Negocio criado pelo super admin.");
   }
 
-  useEffect(() => {
-    if (window.location.pathname === "/") {
-      window.history.replaceState({}, "", defaultStoreRoute);
-    }
+  function updateBusiness(id, updates) {
+    setBusinesses((current) =>
+      current.map((business) => (business.id === id ? { ...business, ...updates } : business))
+    );
+    notify("Configuracao da loja atualizada.");
+  }
 
+  function updatePlan(id, updates) {
+    setPlans((current) => current.map((plan) => (plan.id === id ? { ...plan, ...updates } : plan)));
+    notify("Plano atualizado.");
+  }
+
+  useEffect(() => {
     const onPopState = () => setRouteState(getInitialRoute());
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
@@ -136,6 +146,10 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem(storageKeys.bookings, JSON.stringify(bookings));
   }, [bookings]);
+
+  useEffect(() => {
+    localStorage.setItem(storageKeys.plans, JSON.stringify(plans));
+  }, [plans]);
 
   useEffect(() => {
     let ignore = false;
@@ -173,6 +187,7 @@ export default function App() {
         <strong>{isLoading ? "Carregando dados..." : "Pronto para usar"}</strong>
       </div>
 
+      {route === "/" ? <LandingPage businesses={businesses} plans={plans} setRoute={setRoute} /> : null}
       {publicStoreSlug ? (
         <ClientePage addBooking={addBooking} businesses={businesses} selectedBusinessId={publicStoreSlug} />
       ) : null}
@@ -181,11 +196,19 @@ export default function App() {
           bookings={bookings}
           businesses={businesses}
           businessesById={businessesById}
+          updateBusiness={updateBusiness}
           updateBookingStatus={updateBookingStatus}
         />
       ) : null}
       {route === "/super-admin" ? (
-        <SuperAdminPage addBusiness={addBusiness} bookings={bookings} businesses={businesses} />
+        <SuperAdminPage
+          addBusiness={addBusiness}
+          bookings={bookings}
+          businesses={businesses}
+          plans={plans}
+          updateBusiness={updateBusiness}
+          updatePlan={updatePlan}
+        />
       ) : null}
 
       <div className={`toast ${toast ? "show" : ""}`} role="status" aria-live="polite">

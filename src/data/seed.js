@@ -11,6 +11,12 @@ export const planPrices = {
   Premium: 249
 };
 
+export const initialPlans = [
+  { id: "Essencial", name: "Essencial", price: 79, trialDays: 7, storesLimit: 1, bookingsLimit: 120 },
+  { id: "Profissional", name: "Profissional", price: 149, trialDays: 14, storesLimit: 3, bookingsLimit: 500 },
+  { id: "Premium", name: "Premium", price: 249, trialDays: 30, storesLimit: 10, bookingsLimit: 2000 }
+];
+
 export const timeSlots = [
   "08:00",
   "08:30",
@@ -31,6 +37,14 @@ export const timeSlots = [
   "17:00"
 ];
 
+export const defaultSchedule = {
+  slotInterval: 60,
+  workDays: [1, 2, 3, 4, 5, 6],
+  closedDates: ["2026-06-07"],
+  startTime: "08:00",
+  endTime: "18:00"
+};
+
 export const initialBusinesses = [
   {
     id: "brilho-car",
@@ -39,6 +53,9 @@ export const initialBusinesses = [
     owner: "Marcos",
     plan: "Profissional",
     monthly: 149,
+    active: true,
+    trialDays: 14,
+    schedule: defaultSchedule,
     professionals: ["Marcos", "Diego", "Paula"],
     services: [
       { name: "Lavagem simples", price: 45, duration: 40 },
@@ -53,6 +70,9 @@ export const initialBusinesses = [
     owner: "Rafael",
     plan: "Essencial",
     monthly: 79,
+    active: true,
+    trialDays: 7,
+    schedule: { ...defaultSchedule, slotInterval: 30, workDays: [2, 3, 4, 5, 6] },
     professionals: ["Rafael", "Andre", "Lucas"],
     services: [
       { name: "Corte masculino", price: 45, duration: 35 },
@@ -67,6 +87,9 @@ export const initialBusinesses = [
     owner: "Ana",
     plan: "Premium",
     monthly: 249,
+    active: true,
+    trialDays: 30,
+    schedule: { ...defaultSchedule, slotInterval: 45, workDays: [1, 2, 3, 4, 5] },
     professionals: ["Ana", "Camila", "Nina"],
     services: [
       { name: "Manicure tradicional", price: 38, duration: 45 },
@@ -81,6 +104,9 @@ export const initialBusinesses = [
     owner: "Bianca",
     plan: "Profissional",
     monthly: 149,
+    active: false,
+    trialDays: 14,
+    schedule: { ...defaultSchedule, slotInterval: 60, workDays: [1, 2, 3, 4, 5] },
     professionals: ["Bianca", "Priscila", "Joana"],
     services: [
       { name: "Escova", price: 60, duration: 45 },
