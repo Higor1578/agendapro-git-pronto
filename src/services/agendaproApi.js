@@ -137,7 +137,12 @@ export async function createRemoteBusiness(business) {
     return null;
   }
 
-  const { data, error } = await supabase.from("businesses").insert(fromBusiness(business)).select("*").single();
+  const { data, error } = await supabase.functions.invoke("create-business", {
+    body: { business: fromBusiness(business) }
+  });
+
   if (error) throw error;
-  return toBusiness(data);
+  if (data?.error) throw new Error(data.error);
+
+  return toBusiness(data.business);
 }

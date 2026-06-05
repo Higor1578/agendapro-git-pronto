@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.grant-store-access]
 verify_jwt = false
+
+[functions.create-business]
+verify_jwt = false
