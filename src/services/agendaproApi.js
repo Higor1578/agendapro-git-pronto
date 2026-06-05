@@ -75,6 +75,20 @@ function fromBooking(booking) {
   };
 }
 
+async function getFunctionErrorMessage(error) {
+  const response = error?.context;
+  if (response?.json) {
+    try {
+      const payload = await response.clone().json();
+      return payload?.error || payload?.message || error.message;
+    } catch {
+      return error.message;
+    }
+  }
+
+  return error?.message ?? "Erro desconhecido na Edge Function.";
+}
+
 export async function fetchAgendaData() {
   if (!isSupabaseConfigured) {
     return null;
@@ -141,7 +155,7 @@ export async function createRemoteBusiness(business) {
     body: { business: fromBusiness(business) }
   });
 
-  if (error) throw error;
+  if (error) throw new Error(await getFunctionErrorMessage(error));
   if (data?.error) throw new Error(data.error);
 
   return toBusiness(data.business);

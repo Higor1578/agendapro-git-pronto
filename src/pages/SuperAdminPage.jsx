@@ -82,6 +82,11 @@ export default function SuperAdminPage({
       services: defaultServices[type]
     });
 
+    if (savedBusiness?.failed) {
+      setAccessMessage(`Nao foi possivel salvar no Supabase: ${savedBusiness.message}`);
+      return;
+    }
+
     if (!savedBusiness) {
       setAccessMessage("Nao foi possivel salvar no Supabase. Confira a Edge Function e o SQL do banco.");
       return;

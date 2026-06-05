@@ -104,7 +104,7 @@ export default function App() {
         return;
       } catch (error) {
         notify(`Erro no Supabase: ${error.message}`);
-        return null;
+        return { failed: true, message: error.message };
       }
     }
 
