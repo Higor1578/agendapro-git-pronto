@@ -16,9 +16,6 @@ export default function LandingPage({ businesses, plans, setRoute }) {
             <button className="primary-button" onClick={() => setRoute("/super-admin")} type="button">
               Gerenciar plataforma
             </button>
-            <button className="secondary-button" onClick={() => setRoute(`/loja/${businesses[0]?.id}`)} type="button">
-              Ver modelo de loja
-            </button>
           </div>
         </div>
         <div className="hero-preview">

@@ -11,6 +11,20 @@ const defaultServices = {
   salao: [{ name: "Escova", price: 60, duration: 45 }]
 };
 
+function uniqueBusinessSlug(name, businesses) {
+  const base = slugify(name);
+  const used = new Set(businesses.map((business) => business.id));
+  let slug = base;
+  let suffix = 2;
+
+  while (used.has(slug)) {
+    slug = `${base}-${suffix}`;
+    suffix += 1;
+  }
+
+  return slug;
+}
+
 export default function SuperAdminPage({
   businesses,
   bookings,
@@ -40,7 +54,7 @@ export default function SuperAdminPage({
     setAccessMessage("");
 
     const savedBusiness = await addBusiness({
-      id: slugify(`${name}-${Date.now()}`),
+      id: uniqueBusinessSlug(name, businesses),
       name,
       type,
       owner,

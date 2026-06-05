@@ -20,7 +20,7 @@ export default function AdminNegocioPage({ businesses, bookings, selectedBusines
   const [status, setStatus] = useState("todos");
   const [professional, setProfessional] = useState("todos");
   const [pushStatus, setPushStatus] = useState("");
-  const business = businesses.find((item) => item.id === businessId) ?? businesses[0];
+  const business = businesses.find((item) => item.id === (selectedBusinessId ?? businessId)) ?? null;
   const isAdminLocked = Boolean(selectedBusinessId);
 
   useEffect(() => {
@@ -31,14 +31,27 @@ export default function AdminNegocioPage({ businesses, bookings, selectedBusines
 
   const filteredBookings = useMemo(
     () =>
+      business
+        ?
       sortBookings(
         bookings
           .filter((booking) => booking.businessId === business.id)
           .filter((booking) => status === "todos" || booking.status === status)
           .filter((booking) => professional === "todos" || booking.professional === professional)
-      ),
-    [bookings, business.id, status, professional]
+      )
+        : [],
+    [bookings, business, status, professional]
   );
+
+  if (!business) {
+    return (
+      <section className="panel">
+        <p className="eyebrow">Admin nao encontrado</p>
+        <h1>Esse painel de loja nao existe.</h1>
+        <p>Confira o slug da loja ou cadastre esse negocio no super admin.</p>
+      </section>
+    );
+  }
 
   const revenue = filteredBookings.reduce((sum, booking) => sum + booking.price, 0);
   const expensesTotal = (business.expenses ?? []).reduce((sum, expense) => sum + Number(expense.amount), 0);
@@ -186,13 +199,20 @@ export default function AdminNegocioPage({ businesses, bookings, selectedBusines
       <section className="filters" aria-label="Filtros do admin do negocio">
         <label>
           Meu negocio
-          <select disabled={isAdminLocked} onChange={handleBusinessChange} value={business.id}>
-            {businesses.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.name}
-              </option>
-            ))}
-          </select>
+          {isAdminLocked ? (
+            <div className="locked-store">
+              <strong>{business.name}</strong>
+              <small>/admin/{business.id}</small>
+            </div>
+          ) : (
+            <select onChange={handleBusinessChange} value={business.id}>
+              {businesses.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
+          )}
         </label>
         <label>
           Status

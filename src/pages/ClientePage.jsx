@@ -34,8 +34,11 @@ export default function ClientePage({ businesses, addBooking, selectedBusinessId
   const [businessId, setBusinessId] = useState(selectedBusinessId ?? businesses[0]?.id ?? "");
   const [confirmation, setConfirmation] = useState(null);
   const selectedBusiness = useMemo(
-    () => businesses.find((business) => business.id === businessId) ?? businesses[0],
-    [businessId, businesses]
+    () => {
+      const currentId = selectedBusinessId ?? businessId;
+      return businesses.find((business) => business.id === currentId) ?? null;
+    },
+    [businessId, businesses, selectedBusinessId]
   );
   const isStoreLocked = Boolean(selectedBusinessId);
 
@@ -50,7 +53,7 @@ export default function ClientePage({ businesses, addBooking, selectedBusinessId
       <section className="panel">
         <p className="eyebrow">Loja nao encontrada</p>
         <h1>Esse link de agendamento nao existe.</h1>
-        <p>Confira o slug da loja ou cadastre o negocio no super admin.</p>
+        <p>Confira o slug da loja ou cadastre esse negocio no super admin.</p>
       </section>
     );
   }
@@ -237,30 +240,6 @@ export default function ClientePage({ businesses, addBooking, selectedBusinessId
           </button>
         </form>
       </aside>
-
-      <section className="panel wide-panel">
-        <div className="panel-header">
-          <div>
-            <h2>Outros links de lojas</h2>
-            <p>Cada negocio tem uma URL publica propria.</p>
-          </div>
-        </div>
-        <div className="business-grid">
-          {businesses.map((business) => (
-            <article className="business-card" key={business.id}>
-              <span className="tag business-badge">{businessTypes[business.type]}</span>
-              <strong>{business.name}</strong>
-              <p>
-                {business.professionals.length} profissionais, servicos a partir de{" "}
-                {currency.format(business.services[0].price)}.
-              </p>
-              <a className="store-link" href={`/loja/${business.id}`}>
-                /loja/{business.id}
-              </a>
-            </article>
-          ))}
-        </div>
-      </section>
     </section>
   );
 }
