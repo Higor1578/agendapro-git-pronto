@@ -46,6 +46,7 @@ function fromBusiness(business) {
     owner: business.owner,
     owner_email: business.ownerEmail ?? "",
     owner_user_id: business.ownerUserId || null,
+    temporary_password: business.temporaryPassword || null,
     plan: business.plan,
     monthly: business.monthly,
     active: business.active,
@@ -158,5 +159,9 @@ export async function createRemoteBusiness(business) {
   if (error) throw new Error(await getFunctionErrorMessage(error));
   if (data?.error) throw new Error(data.error);
 
-  return toBusiness(data.business);
+  return {
+    ...toBusiness(data.business),
+    accessCreated: Boolean(data.accessCreated),
+    temporaryPassword: data.temporaryPassword ?? business.temporaryPassword ?? ""
+  };
 }

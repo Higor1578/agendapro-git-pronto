@@ -48,6 +48,7 @@ export default function SuperAdminPage({
     const owner = form.get("owner");
     const ownerEmail = form.get("ownerEmail");
     const ownerUserId = form.get("ownerUserId");
+    const temporaryPassword = form.get("temporaryPassword");
     const whatsapp = form.get("whatsapp");
     const instagram = form.get("instagram");
 
@@ -60,6 +61,7 @@ export default function SuperAdminPage({
       owner,
       ownerEmail,
       ownerUserId,
+      temporaryPassword,
       plan,
       monthly: plans.find((item) => item.id === plan)?.price ?? planPrices[plan],
       active: true,
@@ -92,7 +94,11 @@ export default function SuperAdminPage({
       return;
     }
 
-    if (savedBusiness && (ownerEmail || ownerUserId)) {
+    if (savedBusiness.accessCreated) {
+      setAccessMessage(
+        `Loja criada e acesso do cliente liberado. Login: ${ownerEmail}. Senha temporaria: ${savedBusiness.temporaryPassword}`
+      );
+    } else if (savedBusiness && (ownerEmail || ownerUserId)) {
       try {
         await grantStoreAccess({
           businessId: savedBusiness.id,
@@ -252,6 +258,10 @@ export default function SuperAdminPage({
             <label>
               E-mail do admin
               <input name="ownerEmail" placeholder="cliente@email.com" required type="email" />
+            </label>
+            <label>
+              Senha temporaria
+              <input minLength="8" name="temporaryPassword" placeholder="Ex: Cliente@123" required type="text" />
             </label>
             <label>
               ID do usuario Supabase

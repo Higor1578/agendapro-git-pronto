@@ -9,6 +9,7 @@ type BusinessInput = {
   owner?: string;
   owner_email?: string;
   owner_user_id?: string | null;
+  temporary_password?: string | null;
   plan?: string;
   monthly?: number;
   active?: boolean;
@@ -55,13 +56,15 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: "Dados obrigatorios da loja ausentes." }, 400);
     }
 
+    const access = await resolveStoreAdminAccess(supabase, business);
+
     const payload = {
       id: business.id,
       name: business.name,
       type: business.type,
       owner: business.owner,
       owner_email: business.owner_email ?? "",
-      owner_user_id: business.owner_user_id || null,
+      owner_user_id: access.userId || null,
       plan: business.plan,
       monthly: business.monthly ?? 0,
       active: business.active ?? true,
@@ -75,9 +78,13 @@ Deno.serve(async (req) => {
     };
 
     const inserted = await insertBusiness(supabase, payload);
-    await maybeCreateMembership(supabase, inserted, payload.owner_email, payload.owner_user_id);
+    await createMembership(supabase, inserted, access.userId, access.mustChangePassword);
 
-    return jsonResponse({ business: inserted });
+    return jsonResponse({
+      business: { ...inserted, owner_user_id: access.userId || inserted.owner_user_id },
+      accessCreated: Boolean(access.userId),
+      temporaryPassword: access.temporaryPassword,
+    });
   } catch (error) {
     return jsonResponse({ error: error.message ?? "Erro ao cadastrar loja." }, 500);
   }
@@ -98,30 +105,69 @@ async function insertBusiness(supabase: any, payload: Record<string, unknown>) {
   return data;
 }
 
-async function maybeCreateMembership(supabase: any, business: any, email?: string, userId?: string | null) {
-  let finalUserId = userId || "";
-  const cleanEmail = email?.trim().toLowerCase();
+async function resolveStoreAdminAccess(supabase: any, business: BusinessInput) {
+  const cleanEmail = business.owner_email?.trim().toLowerCase();
+  const temporaryPassword = business.temporary_password?.trim() || "";
+  let userId = business.owner_user_id || "";
+  let mustChangePassword = false;
 
-  if (!finalUserId && cleanEmail) {
-    finalUserId = await findUserIdByEmail(supabase, cleanEmail);
+  if (!userId && cleanEmail) {
+    userId = await findUserIdByEmail(supabase, cleanEmail);
   }
 
-  if (!finalUserId) return;
+  if (!userId && cleanEmail) {
+    if (!temporaryPassword || temporaryPassword.length < 8) {
+      throw new Error("Informe uma senha temporaria com pelo menos 8 caracteres para criar o acesso do cliente.");
+    }
+
+    const { data, error } = await supabase.auth.admin.createUser({
+      email: cleanEmail,
+      password: temporaryPassword,
+      email_confirm: true,
+      user_metadata: {
+        full_name: business.owner,
+        role: "store_admin",
+        must_change_password: true,
+      },
+    });
+
+    if (error) throw error;
+    userId = data.user.id;
+    mustChangePassword = true;
+  } else if (userId && temporaryPassword) {
+    const { error } = await supabase.auth.admin.updateUserById(userId, {
+      password: temporaryPassword,
+      user_metadata: {
+        full_name: business.owner,
+        role: "store_admin",
+        must_change_password: true,
+      },
+    });
+
+    if (error) throw error;
+    mustChangePassword = true;
+  }
+
+  return { userId, temporaryPassword, mustChangePassword };
+}
+
+async function createMembership(supabase: any, business: any, userId?: string, mustChangePassword = false) {
+  if (!userId) return;
 
   await supabase.from("profiles").upsert({
-    id: finalUserId,
+    id: userId,
     full_name: business.owner,
     role: "store_admin",
-    must_change_password: false,
+    must_change_password: mustChangePassword,
   });
 
   await supabase.from("business_members").upsert({
     business_id: business.id,
-    user_id: finalUserId,
+    user_id: userId,
     role: "owner",
   });
 
-  await supabase.from("businesses").update({ owner_user_id: finalUserId }).eq("id", business.id);
+  await supabase.from("businesses").update({ owner_user_id: userId }).eq("id", business.id);
 }
 
 async function findUserIdByEmail(supabase: any, email: string) {
